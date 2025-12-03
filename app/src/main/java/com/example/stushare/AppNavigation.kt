@@ -6,11 +6,28 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp // 🟢 ĐÃ THÊM IMPORT NÀY
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -47,6 +64,7 @@ import com.example.stushare.features.feature_profile.ui.account.AccountSecurityS
 import com.example.stushare.features.feature_profile.ui.account.PersonalInfoScreen
 import com.example.stushare.features.feature_profile.ui.account.ChangePasswordScreen
 import com.example.stushare.features.feature_profile.ui.account.SwitchAccountScreen
+import com.example.stushare.features.feature_profile.ui.account.EditAttributeScreen
 import com.example.stushare.features.feature_profile.ui.settings.notification.NotificationSettingsScreen
 import com.example.stushare.features.feature_profile.ui.settings.appearance.AppearanceSettingsScreen
 import com.example.stushare.features.feature_profile.ui.settings.appearance.AppearanceViewModel
@@ -273,29 +291,25 @@ fun AppNavigation(
         }
 
         // ==========================================
-        // 4. ADMIN FEATURES (Đã cập nhật hoàn chỉnh)
+        // 4. ADMIN FEATURES
         // ==========================================
 
-        // 🟢 Màn hình Dashboard (Menu Admin)
         composable<NavRoute.AdminDashboard>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
             AdminScreen(
                 onBackClick = { navController.popBackStack() },
-                // 👇 Sự kiện chuyển sang màn hình danh sách báo cáo
                 onNavigateToReports = { navController.navigate(NavRoute.AdminReports) }
             )
         }
 
-        // 🟢 Màn hình Danh sách Báo cáo Vi phạm
         composable<NavRoute.AdminReports>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
             AdminReportScreen(
                 onBackClick = { navController.popBackStack() },
-                // 👇 Sự kiện bấm vào một báo cáo để xem tài liệu gốc
                 onDocumentClick = { documentId ->
                     navController.navigate(NavRoute.DocumentDetail(documentId))
                 }
@@ -332,13 +346,99 @@ fun AppNavigation(
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
             val context = LocalContext.current
+            val viewModel = hiltViewModel<ProfileViewModel>()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+            // Lấy email và SĐT từ ViewModel (ProfileUiState)
+            val user = FirebaseAuth.getInstance().currentUser
+            val currentEmail = user?.email ?: ""
+            val currentPhone = user?.phoneNumber ?: ""
+
             AccountSecurityScreen(
+                userEmail = currentEmail,
+                userPhone = currentPhone,
                 onBackClick = { navController.popBackStack() },
                 onPersonalInfoClick = { navController.navigate(NavRoute.PersonalInfo) },
-                onPhoneClick = { Toast.makeText(context, "Tính năng đang phát triển", Toast.LENGTH_SHORT).show() },
-                onEmailClick = { Toast.makeText(context, "Tính năng đang phát triển", Toast.LENGTH_SHORT).show() },
+                // 🟢 Chuyển sang màn hình EditPhone
+                onPhoneClick = { navController.navigate(NavRoute.EditPhone) },
+                // 🟢 Chuyển sang màn hình EditEmail
+                onEmailClick = { navController.navigate(NavRoute.EditEmail) },
                 onPasswordClick = { navController.navigate(NavRoute.ChangePassword) },
                 onDeleteAccountClick = { Toast.makeText(context, "Chức năng cần xác thực lại", Toast.LENGTH_SHORT).show() }
+            )
+        }
+
+        // 🟢 ROUTE MỚI: CHỈNH SỬA EMAIL
+        composable<NavRoute.EditEmail>(
+            enterTransition = { enterTransition }, exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
+        ) {
+            val context = LocalContext.current
+            val viewModel = hiltViewModel<ProfileViewModel>()
+            val user = FirebaseAuth.getInstance().currentUser
+            
+            // Các biến trạng thái để quản lý Dialog
+            var showPasswordDialog by remember { mutableStateOf(false) }
+            var pendingNewEmail by remember { mutableStateOf("") }
+
+            // Lắng nghe kết quả từ ViewModel (để hiển thị Toast hoặc đóng màn hình)
+            LaunchedEffect(Unit) {
+                viewModel.updateMessage.collect { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    if (msg.contains("thành công", ignoreCase = true)) {
+                        navController.popBackStack() // Quay về nếu thành công
+                    }
+                }
+            }
+
+            // Màn hình chính
+            EditAttributeScreen(
+                title = "Cập nhật Email",
+                initialValue = user?.email ?: "",
+                label = "Email mới",
+                onBackClick = { navController.popBackStack() },
+                onSaveClick = { newEmail ->
+                    if (newEmail == user?.email) {
+                        Toast.makeText(context, "Email mới trùng với email hiện tại", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // Lưu email tạm và hiện Dialog nhập pass
+                        pendingNewEmail = newEmail
+                        showPasswordDialog = true
+                    }
+                }
+            )
+
+            // Hiển thị Dialog nếu cần
+            if (showPasswordDialog) {
+                ReAuthenticateDialog(
+                    onDismiss = { showPasswordDialog = false },
+                    onConfirm = { password ->
+                        showPasswordDialog = false
+                        // Gọi ViewModel để thực hiện đổi email
+                        viewModel.updateEmail(currentPass = password, newEmail = pendingNewEmail)
+                    }
+                )
+            }
+        }
+
+        // 🟢 ROUTE MỚI: CHỈNH SỬA SỐ ĐIỆN THOẠI
+        composable<NavRoute.EditPhone>(
+            enterTransition = { enterTransition }, exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
+        ) {
+            val context = LocalContext.current
+            val user = FirebaseAuth.getInstance().currentUser
+
+            EditAttributeScreen(
+                title = "Cập nhật SĐT",
+                initialValue = user?.phoneNumber ?: "",
+                label = "Số điện thoại mới (+84...)",
+                onBackClick = { navController.popBackStack() },
+                onSaveClick = { newPhone ->
+                    Toast.makeText(context, "Đang gửi mã OTP đến $newPhone...", Toast.LENGTH_SHORT).show()
+                    // Logic thực tế cần quy trình Verify OTP của Firebase Phone Auth
+                    navController.popBackStack()
+                }
             )
         }
 
@@ -404,4 +504,45 @@ fun AppNavigation(
             ReportViolationScreen(onBackClick = { navController.popBackStack() })
         }
     }
+}
+
+// 🟢 COMPONENT: HỘP THOẠI XÁC THỰC MẬT KHẨU
+@Composable
+fun ReAuthenticateDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Xác thực bảo mật") },
+        text = {
+            Column {
+                Text("Vui lòng nhập mật khẩu hiện tại để tiếp tục:")
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Mật khẩu") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(), // Ẩn mật khẩu
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(password) },
+                enabled = password.isNotBlank()
+            ) {
+                Text("Xác nhận")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
+            }
+        }
+    )
 }

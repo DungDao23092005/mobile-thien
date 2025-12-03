@@ -234,7 +234,6 @@ fun ManHinhDangNhap(boDieuHuong: NavController) {
                     )
                 }
 
-                // Nút Số điện thoại
                 IconButton(
                     onClick = { boDieuHuong.navigate(NavRoute.LoginSMS) },
                     modifier = Modifier
@@ -252,7 +251,6 @@ fun ManHinhDangNhap(boDieuHuong: NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Chuyển sang Đăng ký
             Row {
                 Text("Chưa có tài khoản? ", color = Color.Black)
                 Text(
@@ -262,6 +260,23 @@ fun ManHinhDangNhap(boDieuHuong: NavController) {
                     modifier = Modifier.clickable {
                         boDieuHuong.navigate(NavRoute.Register)
                     }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            TextButton(
+                onClick = {
+                    boDieuHuong.navigate(NavRoute.Home) {
+                        popUpTo(NavRoute.Login) { inclusive = true }
+                    }
+                },
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Text(
+                    text = "Tiếp tục với vai trò Khách 👤",
+                    color = Color.Gray,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }

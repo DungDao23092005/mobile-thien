@@ -28,15 +28,16 @@ sealed interface NavRoute {
     @Serializable data class PdfViewer(val url: String, val title: String) : NavRoute
 
     // --- ADMIN FEATURES ---
-    // 🟢 Dashboard tổng quan (Thống kê)
     @Serializable data object AdminDashboard : NavRoute
-
-    // 🟢 Danh sách báo cáo vi phạm (Cần thêm cái này để click vào nút "Duyệt tài liệu")
     @Serializable data object AdminReports : NavRoute
 
     // --- SETTINGS ---
     @Serializable data object Settings : NavRoute
     @Serializable data object AccountSecurity : NavRoute
+    
+    @Serializable data object EditPhone : NavRoute
+    @Serializable data object EditEmail : NavRoute
+
     @Serializable data object ChangePassword : NavRoute
     @Serializable data object NotificationSettings : NavRoute
     @Serializable data object AppearanceSettings : NavRoute

@@ -24,13 +24,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// ⭐️ IMPORT ĐÚNG CỦA DỰ ÁN CHÍNH
 import com.example.stushare.R
 import com.example.stushare.ui.theme.PrimaryGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountSecurityScreen(
+    userEmail: String, // 🟢 Nhận Email từ bên ngoài
+    userPhone: String, // 🟢 Nhận SĐT từ bên ngoài
     onBackClick: () -> Unit,
     onPersonalInfoClick: () -> Unit,
     onPhoneClick: () -> Unit,
@@ -62,7 +63,6 @@ fun AccountSecurityScreen(
                         )
                     }
                 },
-                // ⭐️ SỬA: Dùng PrimaryGreen
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = PrimaryGreen)
             )
         },
@@ -75,7 +75,7 @@ fun AccountSecurityScreen(
                     .padding(innerPadding)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Tài khoản
+                // --- NHÓM TÀI KHOẢN ---
                 SectionHeader(title = stringResource(R.string.acc_sec_account_group))
 
                 AccountItem(
@@ -88,33 +88,35 @@ fun AccountSecurityScreen(
 
                 HorizontalDivider(thickness = 1.dp, color = dividerColor)
 
+                // 🟢 Hiển thị Số điện thoại thực tế
                 AccountItem(
                     title = stringResource(R.string.acc_sec_phone),
-                    subtitle = "(+84) ...", // Placeholder hoặc lấy từ ViewModel
+                    subtitle = if (userPhone.isNotBlank()) userPhone else "Chưa liên kết",
                     iconVector = Icons.Default.Phone,
                     onClick = onPhoneClick
                 )
 
                 HorizontalDivider(thickness = 1.dp, color = dividerColor)
 
+                // 🟢 Hiển thị Email thực tế
                 AccountItem(
                     title = stringResource(R.string.acc_sec_email),
-                    subtitle = stringResource(R.string.acc_sec_not_linked),
+                    subtitle = if (userEmail.isNotBlank()) userEmail else stringResource(R.string.acc_sec_not_linked),
                     iconVector = Icons.Default.Email,
                     onClick = onEmailClick
                 )
 
-                // Bảo mật
+                // --- NHÓM BẢO MẬT ---
                 SectionHeader(title = stringResource(R.string.acc_sec_security_group))
 
                 AccountItem(
                     title = stringResource(R.string.acc_sec_password),
-                    subtitle = null,
+                    subtitle = "********", // Ẩn mật khẩu
                     iconVector = Icons.Default.Lock,
                     onClick = onPasswordClick
                 )
 
-                // Vô hiệu hóa
+                // --- NHÓM VÔ HIỆU HÓA ---
                 SectionHeader(title = stringResource(R.string.acc_sec_disable_group))
 
                 AccountItem(
@@ -127,7 +129,7 @@ fun AccountSecurityScreen(
                 Spacer(modifier = Modifier.height(100.dp))
             }
 
-            // Bottom Curve
+            // Bottom Curve (Trang trí)
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -135,7 +137,6 @@ fun AccountSecurityScreen(
                     .height(120.dp)
                     .offset(y = 60.dp)
                     .background(
-                        // ⭐️ SỬA: Dùng PrimaryGreen
                         color = PrimaryGreen,
                         shape = RoundedCornerShape(topStart = 1000.dp, topEnd = 1000.dp)
                     )
@@ -148,7 +149,6 @@ fun AccountSecurityScreen(
 fun SectionHeader(title: String) {
     Text(
         text = title,
-        // ⭐️ SỬA: Dùng PrimaryGreen
         color = PrimaryGreen,
         fontWeight = FontWeight.Bold,
         fontSize = 16.sp,
@@ -193,7 +193,6 @@ fun AccountItem(
                 Icon(
                     imageVector = iconVector,
                     contentDescription = null,
-                    // ⭐️ SỬA: Dùng PrimaryGreen
                     tint = PrimaryGreen,
                     modifier = Modifier.size(28.dp)
                 )
