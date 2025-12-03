@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -66,9 +67,14 @@ class DocumentDetailViewModel @Inject constructor(
 
     private fun getComments(documentId: String) {
         viewModelScope.launch {
-            repository.getComments(documentId).collect { list ->
-                _comments.value = list
-            }
+            repository.getComments(documentId)
+                .catch { e -> 
+                    e.printStackTrace() 
+                    emit(emptyList())
+                }
+                .collect { list ->
+                    _comments.value = list
+                }
         }
     }
 
@@ -147,7 +153,6 @@ class DocumentDetailViewModel @Inject constructor(
         }
     }
 
-    // 🟢 MỚI: Hàm xử lý báo cáo
     fun onReportDocument(documentId: String, documentTitle: String, reason: String) {
         viewModelScope.launch {
             val result = repository.reportDocument(documentId, documentTitle, reason)
