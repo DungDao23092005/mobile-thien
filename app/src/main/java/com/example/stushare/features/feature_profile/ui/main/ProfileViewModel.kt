@@ -1,0 +1,293 @@
+package com.example.stushare.features.feature_profile.ui.main
+
+import android.net.Uri
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.stushare.core.data.repository.DocumentRepository
+import com.example.stushare.features.feature_profile.ui.model.DocItem
+import com.example.stushare.features.feature_profile.ui.model.UserProfile
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
+
+// 1. UI STATE
+sealed interface ProfileUiState {
+    data object Loading : ProfileUiState
+    data object Unauthenticated : ProfileUiState
+
+    data class Authenticated(
+        val profile: UserProfile,
+        val totalDocs: Int = 0,
+        val totalDownloads: Int = 0,
+        val memberRank: String = "Thành viên mới"
+    ) : ProfileUiState
+}
+
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val documentRepository: DocumentRepository,
+    private val storage: FirebaseStorage,
+    private val firestore: FirebaseFirestore
+) : ViewModel() {
+
+    private val auth = FirebaseAuth.getInstance()
+    private val _updateMessage = MutableSharedFlow<String>()
+    val updateMessage = _updateMessage.asSharedFlow()
+
+    private val _isUploadingAvatar = MutableStateFlow(false)
+    val isUploadingAvatar = _isUploadingAvatar.asStateFlow()
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
+    private val authStateFlow: Flow<FirebaseUser?> = callbackFlow {
+        val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            trySend(firebaseAuth.currentUser)
+        }
+        auth.addAuthStateListener(authStateListener)
+        trySend(auth.currentUser)
+        awaitClose { auth.removeAuthStateListener(authStateListener) }
+    }.flowOn(Dispatchers.IO)
+
+    // 2. UI STATE CHÍNH
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<ProfileUiState> = authStateFlow
+        .flatMapLatest { user ->
+            if (user != null) {
+                // Lấy thông tin user từ Firestore (Major, Bio, Role)
+                val userDocFlow = callbackFlow {
+                    val docRef = firestore.collection("users").document(user.uid)
+                    val listener = docRef.addSnapshotListener { snapshot, _ ->
+                        trySend(snapshot)
+                    }
+                    awaitClose { listener.remove() }
+                }
+
+                // Lấy danh sách tài liệu
+                val docsFlow = documentRepository.getDocumentsByAuthor(user.uid)
+
+                combine(userDocFlow, docsFlow) { snapshot, documents ->
+                    val totalDocs = documents.size
+                    val totalDownloads = documents.sumOf { it.downloads }
+
+                    val rank = when {
+                        totalDownloads > 1000 -> "Huyền thoại"
+                        totalDownloads > 500 -> "Chuyên gia"
+                        totalDownloads > 100 -> "Tích cực"
+                        totalDocs > 5 -> "Thân thiện"
+                        else -> "Thành viên mới"
+                    }
+
+                    // 🟢 CẬP NHẬT: Lấy thêm Role
+                    val major = snapshot?.getString("major") ?: "Chưa cập nhật"
+                    val bio = snapshot?.getString("bio") ?: ""
+                    val role = snapshot?.getString("role") ?: "user" // Mặc định là user
+
+                    val profile = UserProfile(
+                        id = user.uid,
+                        fullName = user.displayName ?: user.email ?: "Sinh viên UTH",
+                        email = user.email ?: "",
+                        avatarUrl = user.photoUrl?.toString(),
+                        major = major,
+                        bio = bio,
+                        role = role // 🟢 Gán role vào model
+                    )
+
+                    ProfileUiState.Authenticated(
+                        profile = profile,
+                        totalDocs = totalDocs,
+                        totalDownloads = totalDownloads,
+                        memberRank = rank
+                    )
+                }
+            } else {
+                flowOf(ProfileUiState.Unauthenticated)
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            ProfileUiState.Loading
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val publishedDocuments: StateFlow<List<DocItem>> = authStateFlow
+        .flatMapLatest { user ->
+            if (user != null) {
+                documentRepository.getDocumentsByAuthor(user.uid).map { documents ->
+                    documents.map { doc ->
+                        DocItem(
+                            documentId = doc.id,
+                            docTitle = doc.title,
+                            meta = "Đã đăng • ${doc.downloads} lượt tải"
+                        )
+                    }
+                }
+            } else {
+                flowOf(emptyList())
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val savedDocuments: StateFlow<List<DocItem>> = authStateFlow
+        .flatMapLatest { user ->
+            if (user != null) {
+                documentRepository.getBookmarkedDocuments().map { documents ->
+                    documents.map { doc ->
+                        DocItem(
+                            documentId = doc.id,
+                            docTitle = doc.title,
+                            meta = "Đã lưu • ${doc.type}"
+                        )
+                    }
+                }
+            } else {
+                flowOf(emptyList())
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val downloadedDocuments: StateFlow<List<DocItem>> = documentRepository.getAllDocuments()
+        .map { documents ->
+            documents.map { doc ->
+                DocItem(
+                    documentId = doc.id,
+                    docTitle = doc.title,
+                    meta = "Đã tải về • ${doc.type.uppercase()}"
+                )
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // --- ACTIONS ---
+
+    fun refreshData() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                auth.currentUser?.reload()?.await()
+                delay(1000)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    fun updateExtendedInfo(major: String, bio: String) {
+        val uid = auth.currentUser?.uid ?: return
+        val data = hashMapOf("major" to major, "bio" to bio)
+        viewModelScope.launch {
+            try {
+                firestore.collection("users").document(uid).set(data, SetOptions.merge()).await()
+                _updateMessage.emit("Đã cập nhật thông tin!")
+            } catch (e: Exception) {
+                _updateMessage.emit("Lỗi: ${e.message}")
+            }
+        }
+    }
+
+    fun uploadAvatar(uri: Uri) {
+        val user = auth.currentUser ?: return
+        viewModelScope.launch {
+            _isUploadingAvatar.value = true
+            try {
+                val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
+                storageRef.putFile(uri).await()
+                val downloadUrl = storageRef.downloadUrl.await()
+                val profileUpdates = UserProfileChangeRequest.Builder().setPhotoUri(downloadUrl).build()
+                user.updateProfile(profileUpdates).await()
+                user.reload().await()
+                _updateMessage.emit("Đã cập nhật ảnh đại diện!")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _updateMessage.emit("Lỗi tải ảnh: ${e.message}")
+            } finally {
+                _isUploadingAvatar.value = false
+            }
+        }
+    }
+
+    fun updateUserName(newName: String) {
+        val user = auth.currentUser ?: return
+        if (newName.isBlank()) {
+            viewModelScope.launch { _updateMessage.emit("Tên không được để trống!") }
+            return
+        }
+        val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(newName).build()
+        user.updateProfile(profileUpdates).addOnCompleteListener { task ->
+            viewModelScope.launch {
+                if (task.isSuccessful) {
+                    _updateMessage.emit("Cập nhật tên thành công!")
+                    user.reload()
+                } else {
+                    _updateMessage.emit("Lỗi: ${task.exception?.message}")
+                }
+            }
+        }
+    }
+
+    fun changePassword(currentPass: String, newPass: String) {
+        val user = auth.currentUser ?: return
+        if (user.email == null) return
+        val credential = EmailAuthProvider.getCredential(user.email!!, currentPass)
+        user.reauthenticate(credential).addOnCompleteListener { authTask ->
+            if (authTask.isSuccessful) {
+                user.updatePassword(newPass).addOnCompleteListener { updateTask ->
+                    viewModelScope.launch {
+                        if (updateTask.isSuccessful) _updateMessage.emit("Đổi mật khẩu thành công!")
+                        else _updateMessage.emit("Lỗi: ${updateTask.exception?.message}")
+                    }
+                }
+            } else {
+                viewModelScope.launch { _updateMessage.emit("Mật khẩu hiện tại không đúng!") }
+            }
+        }
+    }
+
+    fun updateEmail(currentPass: String, newEmail: String) {
+        val user = auth.currentUser ?: return
+        if (user.email == null) return
+        val credential = EmailAuthProvider.getCredential(user.email!!, currentPass)
+        user.reauthenticate(credential).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                user.updateEmail(newEmail).addOnCompleteListener { updateTask ->
+                    viewModelScope.launch {
+                        if (updateTask.isSuccessful) _updateMessage.emit("Đổi email thành công!")
+                        else _updateMessage.emit("Lỗi: ${updateTask.exception?.message}")
+                    }
+                }
+            } else {
+                viewModelScope.launch { _updateMessage.emit("Mật khẩu không đúng!") }
+            }
+        }
+    }
+
+    fun deletePublishedDocument(docId: String) {
+        viewModelScope.launch {
+            try {
+                val result = documentRepository.deleteDocument(docId)
+                if (result.isSuccess) _updateMessage.emit("Đã xóa tài liệu") else _updateMessage.emit("Xóa thất bại")
+            } catch (e: Exception) {
+                _updateMessage.emit("Lỗi khi xóa: ${e.message}")
+            }
+        }
+    }
+
+    fun signOut() { auth.signOut() }
+}

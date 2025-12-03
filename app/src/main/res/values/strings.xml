@@ -1,0 +1,199 @@
+<resources>
+    <string name="app_name">StuShare</string>
+
+    <string name="home_greeting">Xin chào,</string>
+    <string name="home_search_hint">Tìm kiếm tài liệu</string>
+    <string name="section_new_uploads">Mới được tải lên</string>
+    <string name="section_exam_prep">Tài liệu ôn thi</string>
+    <string name="btn_view_all">Xem tất cả</string>
+    <string name="error_no_data">Không có dữ liệu.</string>
+    <string name="msg_pull_to_refresh">Vui lòng kéo xuống để thử tải lại.</string>
+    <string name="btn_retry">Thử lại</string>
+
+    <string name="btn_download">Tải về ngay</string>
+    <string name="about_stushare">Về StuShare</string>
+    <string name="about_version_title">Phiên bản</string>
+    <string name="about_version_subtitle">1.0.0 (Beta)</string>
+    <string name="about_terms">Điều khoản sử dụng</string>
+    <string name="about_privacy">Chính sách bảo mật</string>
+    <string name="acc_sec_header">Tài khoản &amp; bảo mật</string>
+    <string name="acc_sec_account_group">Tài khoản</string>
+    <string name="acc_sec_personal_info">Thông tin cá nhân</string>
+    <string name="acc_sec_username_label">Tên người dùng</string>
+    <string name="acc_sec_phone">Số điện thoại</string>
+    <string name="acc_sec_email">Email</string>
+    <string name="acc_sec_not_linked">Chưa liên kết</string>
+    <string name="acc_sec_security_group">Bảo mật</string>
+    <string name="acc_sec_password">Mật khẩu</string>
+    <string name="acc_sec_disable_group">Vô hiệu hóa</string>
+    <string name="acc_sec_delete_acc">Xóa tài khoản</string>
+    <string name="appearance_language">Giao diện &amp; ngôn ngữ</string>
+    <string name="appearance_dark_mode">Giao diện Tối (Dark Mode)</string>
+    <string name="appearance_font_size">Đổi cỡ chữ</string>
+    <string name="appearance_language_header">Ngôn ngữ</string>
+    <string name="appearance_change_language">Thay đổi ngôn ngữ</string>
+
+    <string name="font_small">Nhỏ</string>
+    <string name="font_medium">Vừa</string>
+    <string name="font_large">Lớn</string>
+
+    <string name="current_language">Tiếng Việt</string>
+    <string name="cancel">Hủy</string>
+
+    <string name="cp_title">Đổi mật khẩu</string>
+    <string name="cp_current">Mật khẩu hiện tại</string>
+    <string name="cp_new">Mật khẩu mới</string>
+    <string name="cp_confirm">Xác nhận mật khẩu mới</string>
+    <string name="cp_btn">Cập nhật mật khẩu</string>
+    <string name="cp_success">Đổi mật khẩu thành công!</string>
+
+    <string name="support_header">Liên hệ hỗ trợ</string>
+    <string name="support_online_channel">Kênh hỗ trợ trực tuyến</string>
+    <string name="support_chat_title">Chat với nhân viên hỗ trợ</string>
+    <string name="support_chat_desc">Phản hồi trung bình trong 5 phút</string>
+    <string name="support_email_title">Gửi email yêu cầu</string>
+
+    <string name="support_other_channel">Kênh khác</string>
+    <string name="support_hotline_title">Hotline</string>
+    <string name="support_hotline_desc">1900 1234 (8:00 – 17:00)</string>
+    <string name="support_faq_title">Câu hỏi thường gặp (FAQ)</string>
+    <string name="support_faq_desc">Xem các vấn đề phổ biến</string>
+
+    <string name="edit_save_btn">Lưu thay đổi</string>
+    <string name="edit_success">Đã cập nhật thành công</string>
+
+    <string name="title_edit_phone">Cập nhật SĐT</string>
+    <string name="label_edit_phone">Số điện thoại mới</string>
+    <string name="title_edit_email">Cập nhật Email</string>
+    <string name="label_edit_email">Địa chỉ Email</string>
+
+    <string name="notifications">Thông báo</string>
+    <string name="noti_set_section_enable">Bật/Tắt thông báo</string>
+    <string name="noti_set_section_in_app">Thông báo trong StuShare</string>
+    <string name="noti_set_sound">Phát âm khi có thông báo</string>
+    <string name="noti_set_vibrate">Rung khi có thông báo</string>
+
+    <string name="p_info_title">Thông tin cá nhân</string>
+    <string name="p_info_name_hint">Tên người dùng</string>
+    <string name="p_info_dob_hint">Ngày sinh</string>
+    <string name="p_info_gender_label">Giới tính</string>
+    <string name="gender_male">Nam</string>
+    <string name="gender_female">Nữ</string>
+    <string name="p_info_save">Lưu thay đổi</string>
+    <string name="p_info_save_success">Đã lưu thông tin: %1$s</string>
+
+    <string name="privacy_header">Chính sách bảo mật</string>
+    <string name="privacy_content">
+        StuShare cam kết bảo vệ quyền riêng tư của bạn.\n\n
+        1. THÔNG TIN THU THẬP\n
+        Chúng tôi thu thập các thông tin sau để cung cấp dịch vụ:\n
+        - Thông tin cá nhân: Tên, Email, Ảnh đại diện (khi bạn đăng nhập).\n
+        - Dữ liệu sử dụng: Lịch sử tải tài liệu, danh sách tài liệu đã lưu.\n\n
+        2. MỤC ĐÍCH SỬ DỤNG\n
+        - Quản lý tài khoản và xác thực người dùng.\n
+        - Cải thiện trải nghiệm và gợi ý tài liệu phù hợp.\n
+        - Gửi thông báo về các cập nhật quan trọng.\n\n
+        3. BẢO MẬT DỮ LIỆU\n
+        Mọi dữ liệu của bạn đều được mã hóa và lưu trữ an toàn trên máy chủ. Chúng tôi áp dụng các biện pháp kỹ thuật tiên tiến để ngăn chặn truy cập trái phép.\n\n
+        4. CHIA SẺ THÔNG TIN\n
+        Chúng tôi cam kết KHÔNG bán, trao đổi hoặc chia sẻ thông tin cá nhân của bạn cho bên thứ ba, trừ khi có yêu cầu từ cơ quan pháp luật.\n\n
+        5. QUYỀN CỦA BẠN\n
+        Bạn có quyền truy cập, chỉnh sửa hoặc yêu cầu xóa dữ liệu cá nhân của mình bất cứ lúc nào thông qua mục Cài đặt trong ứng dụng.
+    </string>
+
+    <string name="terms_header">Điều khoản sử dụng</string>
+    <string name="terms_content">
+        Chào mừng bạn đến với StuShare - Cộng đồng chia sẻ tài liệu học tập.\n\n
+        1. CHẤP NHẬN ĐIỀU KHOẢN\n
+        Bằng việc tải xuống, cài đặt và sử dụng StuShare, bạn đồng ý tuân thủ các Điều khoản sử dụng này. Nếu bạn không đồng ý, vui lòng không sử dụng ứng dụng.\n\n
+        2. QUYỀN SỞ HỮU TRÍ TUỆ\n
+        Mọi tài liệu bạn tải lên StuShare phải thuộc quyền sở hữu của bạn hoặc bạn có quyền hợp pháp để chia sẻ chúng. Bạn chịu trách nhiệm hoàn toàn về tính bản quyền của tài liệu mình đăng tải.\n\n
+        3. QUY TẮC ỨNG XỬ\n
+        - Không đăng tải nội dung vi phạm pháp luật, đồi trụy, kích động bạo lực hoặc xúc phạm người khác.\n
+        - Không spam, quảng cáo trái phép.\n
+        - Tôn trọng cộng đồng và các thành viên khác.\n\n
+        4. MIỄN TRỪ TRÁCH NHIỆM\n
+        StuShare là nền tảng trung gian chia sẻ. Chúng tôi không chịu trách nhiệm về tính chính xác, độ tin cậy của các tài liệu do người dùng đăng tải.\n\n
+        5. XỬ LÝ VI PHẠM\n
+        Chúng tôi có quyền xóa bỏ bất kỳ nội dung nào vi phạm điều khoản và khóa tài khoản người dùng mà không cần báo trước.
+    </string>
+
+    <string name="switch_acc_header">Chuyển tài khoản</string>
+    <string name="switch_acc_add">Thêm tài khoản mới</string>
+    <string name="switch_acc_switched">Đã chuyển sang: %1$s</string>
+    <string name="switch_acc_active">Đang hoạt động</string>
+
+    <string name="settings_title">Cài đặt</string>
+
+    <string name="acc_security">Tài khoản và bảo mật</string>
+    <string name="contact_support">Liên hệ hỗ trợ</string>
+    <string name="report_violation">Báo cáo vi phạm</string>
+    <string name="switch_account">Chuyển tài khoản</string>
+
+    <string name="logout">Đăng xuất</string>
+    <string name="logout_success">Đăng xuất thành công</string>
+
+    <!-- ==== PROFILE SCREEN STRINGS (BẮT BUỘC) ==== -->
+
+    <string name="profile_tab_posted">Đã đăng</string>
+    <string name="profile_tab_saved">Đã lưu</string>
+    <string name="profile_tab_downloaded">Đã tải xuống</string>
+
+    <string name="profile_guest">Khách</string>
+
+    <!-- "Xin chào, %1$s" -->
+    <string name="profile_hello">Xin chào, %1$s</string>
+
+    <string name="profile_dept">Khoa/Bộ môn của bạn</string>
+
+    <string name="profile_empty_list">Danh sách trống</string>
+
+    <string name="profile_view_leaderboard">Xem bảng xếp hạng</string>
+
+    <string name="profile_delete_success">Xóa thành công</string>
+    <string name="feature_not_supported">Tính năng chưa hỗ trợ</string>
+
+    <string name="delete">Xóa</string>
+
+
+    <string name="report_header">Báo cáo vi phạm</string>
+    <string name="report_question">Vấn đề bạn gặp phải là gì?</string>
+
+    <string name="report_reason_spam">Nội dung rác / Spam</string>
+    <string name="report_reason_fake">Thông tin sai lệch</string>
+    <string name="report_reason_copyright">Vi phạm bản quyền tài liệu</string>
+    <string name="report_reason_harassment">Ngôn từ đả kích / Xúc phạm</string>
+    <string name="report_reason_other">Lý do khác</string>
+
+    <string name="report_desc_label">Mô tả chi tiết (Tùy chọn)</string>
+    <string name="report_desc_hint">Nhập thêm thông tin để chúng tôi hỗ trợ tốt hơn…</string>
+
+    <string name="report_btn_submit">Gửi báo cáo</string>
+    <string name="report_success">Đã gửi báo cáo. Cảm ơn bạn!</string>
+    <string name="report_error_select">Vui lòng chọn lý do</string>
+
+    <string name="upload_header">Tải tài liệu lên</string>
+    <string name="upload_no_file">Chưa chọn file nào</string>
+    <string name="upload_selected_file">File đã chọn:</string>
+    <string name="upload_choose_btn">Chọn tài liệu (PDF, Word)</string>
+    <string name="upload_title_hint">Tiêu đề tài liệu</string>
+    <string name="upload_desc_hint">Mô tả thêm (tùy chọn)</string>
+    <string name="upload_error_msg">Vui lòng chọn file và nhập tiêu đề!</string>
+    <string name="upload_btn">Tải lên ngay</string>
+    <string name="upload_btn_loading">Đang tải…</string>
+    <string name="search_title" translatable="false">Tìm kiếm</string>
+    <string name="search_hint" translatable="false">Nhập tên tài liệu, môn học...</string>
+    <string name="search_recent" translatable="false">Tìm kiếm gần đây</string>
+    <string name="clear_all" translatable="false">Xóa tất cả</string>
+    <string name="search_suggestion" translatable="false">Gợi ý cho bạn</string>
+    <string name="back" translatable="false">Quay về</string>
+    <string name="sugg_law">Pháp luật đại cương</string>
+    <string name="sugg_se">Công nghệ phần mềm</string>
+    <string name="sugg_it">Khoa CNTT</string>
+    <string name="sugg_exam">#dethi</string>
+    <string name="nav_home" translatable="false">Trang chủ</string>
+    <string name="nav_search" translatable="false">Tìm kiếm</string>
+    <string name="nav_profile" translatable="false">Cá nhân</string>
+    <string name="view_all" translatable="false">Xem tất cả</string>
+    <string name="section_exam_review">Tài liệu ôn thi</string>
+</resources>
