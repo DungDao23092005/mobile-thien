@@ -58,7 +58,7 @@ fun AccountSecurityScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.content_desc_back), // Thêm content description từ resource
                             tint = Color.White
                         )
                     }
@@ -91,7 +91,8 @@ fun AccountSecurityScreen(
                 // 🟢 Hiển thị Số điện thoại thực tế
                 AccountItem(
                     title = stringResource(R.string.acc_sec_phone),
-                    subtitle = if (userPhone.isNotBlank()) userPhone else "Chưa liên kết",
+                    // [Đã sửa] Sử dụng stringResource thay cho chuỗi cứng "Chưa liên kết"
+                    subtitle = if (userPhone.isNotBlank()) userPhone else stringResource(R.string.acc_sec_not_linked),
                     iconVector = Icons.Default.Phone,
                     onClick = onPhoneClick
                 )
@@ -101,6 +102,7 @@ fun AccountSecurityScreen(
                 // 🟢 Hiển thị Email thực tế
                 AccountItem(
                     title = stringResource(R.string.acc_sec_email),
+                    // [Đã sửa] Đảm bảo sử dụng stringResource
                     subtitle = if (userEmail.isNotBlank()) userEmail else stringResource(R.string.acc_sec_not_linked),
                     iconVector = Icons.Default.Email,
                     onClick = onEmailClick
@@ -111,7 +113,7 @@ fun AccountSecurityScreen(
 
                 AccountItem(
                     title = stringResource(R.string.acc_sec_password),
-                    subtitle = "********", // Ẩn mật khẩu
+                    subtitle = "********", // Mật khẩu ẩn thì không cần dịch
                     iconVector = Icons.Default.Lock,
                     onClick = onPasswordClick
                 )

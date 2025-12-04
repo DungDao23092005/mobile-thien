@@ -2,6 +2,7 @@ package com.example.stushare.features.feature_profile.ui.account
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -11,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.stushare.R
 import com.example.stushare.ui.theme.PrimaryGreen
@@ -22,10 +25,14 @@ fun EditAttributeScreen(
     initialValue: String,
     label: String,
     onBackClick: () -> Unit,
-    onSaveClick: (String) -> Unit // 🟢 New callback to return data
+    onSaveClick: (String) -> Unit, // 🟢 Callback trả dữ liệu về
+    keyboardType: KeyboardType = KeyboardType.Text // 🟢 [Mới] Để hỗ trợ bàn phím số khi nhập SĐT
 ) {
     val context = LocalContext.current
     var value by remember { mutableStateOf(initialValue) }
+
+    // Lấy chuỗi resource để hiển thị thông báo
+    val errEmpty = stringResource(R.string.err_input_empty)
 
     // Dynamic theme colors
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -39,7 +46,7 @@ fun EditAttributeScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.content_desc_back), // [Sửa] Đa ngôn ngữ cho nút Back
                             tint = Color.White
                         )
                     }
@@ -55,6 +62,11 @@ fun EditAttributeScreen(
                 onValueChange = { value = it },
                 label = { Text(label) },
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true, // [Sửa] Thường input 1 dòng nên set true
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = keyboardType, // [Sửa] Sử dụng loại bàn phím được truyền vào
+                    imeAction = ImeAction.Done
+                ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = onSurfaceColor,
                     unfocusedTextColor = onSurfaceColor,
@@ -70,12 +82,14 @@ fun EditAttributeScreen(
                         // 🟢 Call the callback with the new value
                         onSaveClick(value)
                     } else {
-                        Toast.makeText(context, "Vui lòng nhập thông tin", Toast.LENGTH_SHORT).show()
+                        // [Sửa] Sử dụng thông báo đa ngôn ngữ
+                        Toast.makeText(context, errEmpty, Toast.LENGTH_SHORT).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // [Đã có sẵn] String resource cho nút Lưu
                 Text(stringResource(R.string.edit_save_btn))
             }
         }

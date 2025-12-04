@@ -260,4 +260,27 @@
 
     <string name="faq_q6">Does StuShare charge fees?</string>
     <string name="faq_a6">Currently, StuShare is a free sharing platform for the student community.</string>
+
+    <string name="err_login_required">Please log in again</string>
+    <string name="err_name_empty">Name cannot be empty</string>
+    <string name="label_fullname">Full Name</string>
+    <string name="label_major">Faculty / Major</string>
+    <string name="label_bio">Bio</string>
+    <string name="hint_bio">Ex: Mobile development enthusiast...</string>
+    <string name="change_avatar">Change</string>
+
+    <string name="major_it">Information Technology</string>
+    <string name="major_transport_eco">Transport Economics</string>
+    <string name="major_electrical">Electrical - Electronics</string>
+    <string name="major_mechanical">Mechanical Engineering</string>
+    <string name="major_construction">Civil Engineering</string>
+    <string name="major_transport_eng">Transportation Engineering</string>
+    <string name="major_environment">Environment</string>
+    <string name="major_other">Other</string>
+
+    <string name="hint_phone_input">Enter phone number (10 digits)</string>
+    <string name="err_phone_empty">Please enter phone number</string>
+    <string name="err_phone_invalid">Invalid phone number (10 digits required)</string>
+    <string name="err_phone_same">New phone number is the same as the old one</string>
+    <string name="err_input_empty">Please enter information</string>
 </resources>
