@@ -20,7 +20,7 @@ import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Flag // 🟢 Icon Báo cáo
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
@@ -63,7 +63,6 @@ fun DocumentDetailScreen(
     val isSendingComment by viewModel.isSendingComment.collectAsStateWithLifecycle()
 
     var showRatingDialog by remember { mutableStateOf(false) }
-    // 🟢 MỚI: Trạng thái hiển thị hộp thoại báo cáo
     var showReportDialog by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -87,11 +86,16 @@ fun DocumentDetailScreen(
                 title = { Text("Chi tiết tài liệu", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay về")
+                        // 🔴 FIX: Màu icon tự động theo theme (trắng/đen)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Quay về",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 actions = {
-                    // 🟢 Nút Báo cáo (Report)
+                    // Nút Báo cáo (Report)
                     IconButton(onClick = {
                         if (isLoggedIn) showReportDialog = true
                         else onLoginRequired()
@@ -99,7 +103,7 @@ fun DocumentDetailScreen(
                         Icon(
                             imageVector = Icons.Filled.Flag,
                             contentDescription = "Báo cáo",
-                            tint = Color.Red // Màu đỏ cảnh báo
+                            tint = MaterialTheme.colorScheme.error // Dùng màu error chuẩn theme
                         )
                     }
 
@@ -116,11 +120,16 @@ fun DocumentDetailScreen(
                         Icon(
                             imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
                             contentDescription = "Lưu",
-                            tint = if (isBookmarked) PrimaryGreen else Color.Gray
+                            // 🔴 FIX: Màu khi chưa lưu đổi sang onSurfaceVariant cho rõ trên nền đen
+                            tint = if (isBookmarked) PrimaryGreen else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                // 🔴 FIX: Màu nền TopBar theo theme
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -152,10 +161,17 @@ fun DocumentDetailScreen(
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().background(Color.White).padding(paddingValues)) {
+        // 🔴 FIX: Màu nền Box chính
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background) // Nền chính
+            .padding(paddingValues)
+        ) {
             when (val state = uiState) {
                 is DetailUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = PrimaryGreen) }
-                is DetailUiState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(state.message, color = Color.Red) }
+                is DetailUiState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { 
+                    Text(state.message, color = MaterialTheme.colorScheme.error) 
+                }
                 is DetailUiState.Success -> {
                     DocumentDetailContentWithComments(
                         document = state.document,
@@ -185,7 +201,7 @@ fun DocumentDetailScreen(
             )
         }
 
-        // 🟢 MỚI: Hộp thoại báo cáo
+        // Hộp thoại báo cáo
         if (showReportDialog && uiState is DetailUiState.Success) {
             val doc = (uiState as DetailUiState.Success).document
             ReportDialog(
@@ -199,7 +215,6 @@ fun DocumentDetailScreen(
     }
 }
 
-// 🟢 MỚI: Composable ReportDialog tách riêng
 @Composable
 fun ReportDialog(
     onDismiss: () -> Unit,
@@ -212,7 +227,6 @@ fun ReportDialog(
         "Tài liệu bị lỗi không xem được",
         "Khác"
     )
-    // Mặc định chọn lý do đầu tiên
     var selectedReason by remember { mutableStateOf(reasons[0]) }
 
     AlertDialog(
@@ -220,7 +234,8 @@ fun ReportDialog(
         title = { Text(text = "Báo cáo tài liệu", fontWeight = FontWeight.Bold) },
         text = {
             Column {
-                Text("Vui lòng chọn lý do:", fontSize = 14.sp, color = Color.Gray)
+                // 🔴 FIX: Màu chữ
+                Text("Vui lòng chọn lý do:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 reasons.forEach { reason ->
@@ -237,12 +252,13 @@ fun ReportDialog(
                         RadioButton(
                             selected = (reason == selectedReason),
                             onClick = { selectedReason = reason },
-                            colors = RadioButtonDefaults.colors(selectedColor = Color.Red)
+                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.error)
                         )
                         Text(
                             text = reason,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 8.dp)
+                            modifier = Modifier.padding(start = 8.dp),
+                            color = MaterialTheme.colorScheme.onSurface // Chữ lý do
                         )
                     }
                 }
@@ -251,18 +267,20 @@ fun ReportDialog(
         confirmButton = {
             TextButton(
                 onClick = { onSubmit(selectedReason) },
-                colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) {
                 Text("Gửi báo cáo", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy", color = Color.Gray)
+                Text("Hủy", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        containerColor = Color.White,
-        shape = RoundedCornerShape(16.dp)
+        // 🔴 FIX: Nền Dialog
+        containerColor = MaterialTheme.colorScheme.surfaceContainer, // Hoặc surface
+        shape = RoundedCornerShape(16.dp),
+        titleContentColor = MaterialTheme.colorScheme.onSurface
     )
 }
 
@@ -284,14 +302,21 @@ fun DocumentDetailContentWithComments(
                 AsyncImage(
                     model = document.imageUrl,
                     contentDescription = null,
-                    modifier = Modifier.width(160.dp).aspectRatio(0.7f).clip(RoundedCornerShape(16.dp)).background(Color.LightGray.copy(alpha = 0.2f)),
+                    modifier = Modifier
+                        .width(160.dp)
+                        .aspectRatio(0.7f)
+                        .clip(RoundedCornerShape(16.dp))
+                        // 🔴 FIX: Nền placeholder cho ảnh
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentScale = ContentScale.Crop
                 )
             }
             Spacer(Modifier.height(24.dp))
-            Text(document.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            // Tiêu đề
+            Text(document.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(8.dp))
-            Text("Tác giả: ${document.author}", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            // Tác giả
+            Text("Tác giả: ${document.author}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Surface(
@@ -303,22 +328,22 @@ fun DocumentDetailContentWithComments(
                 }
 
                 BadgeInfo(Icons.Filled.Download, "${document.downloads} lượt tải", PrimaryGreen)
-                BadgeInfo(Icons.Default.ChatBubbleOutline, "${comments.size} bình luận", Color.Gray)
+                BadgeInfo(Icons.Default.ChatBubbleOutline, "${comments.size} bình luận", MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(24.dp))
-            Divider(color = Color.LightGray.copy(alpha = 0.2f))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant) // 🔴 FIX: Divider màu chuẩn
             Spacer(Modifier.height(24.dp))
             DetailSection("Mô tả tài liệu", document.description.ifBlank { "Chưa có mô tả." })
             DetailSection("Thông tin thêm", "• Mã môn: ${document.courseCode}\n• Loại: ${document.type}")
             Spacer(Modifier.height(24.dp))
-            Divider(color = Color.LightGray.copy(alpha = 0.2f))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(Modifier.height(16.dp))
-            Text("Bình luận (${comments.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Bình luận (${comments.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
         }
 
         if (comments.isEmpty()) {
             item {
-                Text("Chưa có bình luận nào.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray, modifier = Modifier.padding(vertical = 16.dp))
+                Text("Chưa có bình luận nào.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 16.dp))
             }
         } else {
             items(comments) { comment ->
@@ -347,15 +372,16 @@ fun RatingDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Bạn thấy tài liệu này thế nào?", color = Color.Gray)
+                Text("Bạn thấy tài liệu này thế nào?", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(16.dp))
                 RatingBar(currentRating = 0, onRatingChanged = onRate)
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Đóng", color = Color.Gray) }
+            TextButton(onClick = onDismiss) { Text("Đóng", color = MaterialTheme.colorScheme.onSurfaceVariant) }
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        titleContentColor = MaterialTheme.colorScheme.onSurface
     )
 }
 
@@ -377,7 +403,7 @@ fun RatingBar(
                 Icon(
                     imageVector = Icons.Filled.Star,
                     contentDescription = "$i Star",
-                    tint = if (i <= rating) Color(0xFFFFC107) else Color.LightGray.copy(alpha = 0.5f),
+                    tint = if (i <= rating) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -395,7 +421,10 @@ fun CommentItem(
         AsyncImage(
             model = comment.userAvatar ?: "https://ui-avatars.com/api/?name=${comment.userName}",
             contentDescription = null,
-            modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.LightGray),
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant), // 🔴 FIX: Màu nền avatar placeholder
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.width(12.dp))
@@ -406,12 +435,12 @@ fun CommentItem(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(comment.userName, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(comment.userName, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(modifier = Modifier.width(8.dp))
                     val dateStr = comment.timestamp?.let {
                         SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it)
                     } ?: "Vừa xong"
-                    Text(dateStr, fontSize = 12.sp, color = Color.Gray)
+                    Text(dateStr, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
                 if (isOwnComment) {
@@ -419,7 +448,7 @@ fun CommentItem(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Xóa",
-                            tint = Color.Gray.copy(alpha = 0.6f),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -434,7 +463,12 @@ fun CommentItem(
 @Composable
 fun CommentInputSection(isLoggedIn: Boolean, isSending: Boolean, onSendComment: (String) -> Unit, onLoginRequired: () -> Unit) {
     var text by remember { mutableStateOf("") }
-    Surface(shadowElevation = 8.dp, color = Color.White, modifier = Modifier.fillMaxWidth()) {
+    // 🔴 FIX: Màu nền Surface nhập bình luận
+    Surface(
+        shadowElevation = 8.dp, 
+        color = MaterialTheme.colorScheme.surface, // Thay cho Color.White
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp).navigationBarsPadding(), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = text, onValueChange = { text = it }, placeholder = { Text("Viết bình luận...") },
@@ -443,7 +477,14 @@ fun CommentInputSection(isLoggedIn: Boolean, isSending: Boolean, onSendComment: 
                 keyboardActions = KeyboardActions(onSend = { if (isLoggedIn) { if (text.isNotBlank()) { onSendComment(text); text = "" } } else onLoginRequired() })
             )
             Spacer(Modifier.width(8.dp))
-            IconButton(onClick = { if (isLoggedIn) { if (text.isNotBlank()) { onSendComment(text); text = "" } } else onLoginRequired() }, enabled = text.isNotBlank() && !isSending, modifier = Modifier.background(if (text.isNotBlank()) PrimaryGreen else Color.LightGray, CircleShape)) {
+            IconButton(
+                onClick = { if (isLoggedIn) { if (text.isNotBlank()) { onSendComment(text); text = "" } } else onLoginRequired() }, 
+                enabled = text.isNotBlank() && !isSending, 
+                modifier = Modifier.background(
+                    if (text.isNotBlank()) PrimaryGreen else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f), // Màu disabled
+                    CircleShape
+                )
+            ) {
                 if (isSending) CircularProgressIndicator(Modifier.size(24.dp), Color.White, 2.dp) else Icon(Icons.AutoMirrored.Filled.Send, "Gửi", tint = Color.White)
             }
         }
@@ -452,10 +493,21 @@ fun CommentInputSection(isLoggedIn: Boolean, isSending: Boolean, onSendComment: 
 
 @Composable
 fun BadgeInfo(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.background(color.copy(alpha = 0.1f), RoundedCornerShape(8.dp)).padding(horizontal = 12.dp, vertical = 8.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically, 
+        modifier = Modifier
+            .background(color.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
         Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(6.dp))
-        Text(text = text, style = MaterialTheme.typography.labelMedium, color = Color.Black.copy(alpha = 0.8f), fontWeight = FontWeight.Medium)
+        // 🔴 FIX: Màu chữ badge tự động theo theme, thay vì Color.Black cố định
+        Text(
+            text = text, 
+            style = MaterialTheme.typography.labelMedium, 
+            color = MaterialTheme.colorScheme.onSurface, 
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -471,7 +523,8 @@ fun DetailSection(title: String, content: String) {
 
 @Composable
 fun BottomActionSection(onDownloadClick: () -> Unit, onReadClick: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxWidth(), shadowElevation = 16.dp, color = Color.White) {
+    // 🔴 FIX: Màu nền thanh tác vụ dưới cùng
+    Surface(modifier = Modifier.fillMaxWidth(), shadowElevation = 16.dp, color = MaterialTheme.colorScheme.surface) {
         Row(modifier = Modifier.padding(20.dp).navigationBarsPadding(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             OutlinedButton(onClick = onReadClick, modifier = Modifier.weight(1f).height(54.dp), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, PrimaryGreen)) {
                 Icon(Icons.Default.Visibility, null, tint = PrimaryGreen); Spacer(Modifier.width(8.dp)); Text("Đọc thử", style = MaterialTheme.typography.titleSmall, color = PrimaryGreen, fontWeight = FontWeight.Bold)
