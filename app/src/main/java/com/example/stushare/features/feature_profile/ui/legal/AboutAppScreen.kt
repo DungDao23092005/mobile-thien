@@ -32,14 +32,15 @@ import com.example.stushare.ui.theme.PrimaryGreen
 @Composable
 fun AboutAppScreen(
     onBackClick: () -> Unit,
-    onTermsClick: () -> Unit,   // Thêm callback
-    onPrivacyClick: () -> Unit  // Thêm callback
+    onTermsClick: () -> Unit,
+    onPrivacyClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
+                        // 🟢 Đã sửa: Lấy từ resource
                         text = stringResource(R.string.about_stushare),
                         color = Color.White,
                         fontWeight = FontWeight.Bold
@@ -65,7 +66,7 @@ fun AboutAppScreen(
 
             // --- LOGO & APP NAME ---
             Image(
-                painter = painterResource(id = R.drawable.logo), // Đảm bảo có ảnh logo trong drawabl
+                painter = painterResource(id = R.drawable.logo),
                 contentDescription = "App Logo",
                 modifier = Modifier
                     .size(120.dp)
@@ -77,14 +78,15 @@ fun AboutAppScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "StuShare",
+                text = stringResource(R.string.app_name), // StuShare
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = PrimaryGreen
             )
 
+            // 🟢 Đã sửa: Ghép chuỗi Phiên bản + Số hiệu từ resource
             Text(
-                text = "Phiên bản 1.0.0",
+                text = "${stringResource(R.string.about_version_title)} ${stringResource(R.string.about_version_subtitle)}",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
@@ -101,13 +103,15 @@ fun AboutAppScreen(
             ) {
                 AboutMenuItem(
                     icon = Icons.Default.Info,
-                    title = "Điều khoản sử dụng",
+                    // 🟢 Đã sửa: Lấy chữ "Điều khoản sử dụng" đa ngôn ngữ
+                    title = stringResource(R.string.about_terms),
                     onClick = onTermsClick
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 AboutMenuItem(
                     icon = Icons.Default.Lock,
-                    title = "Chính sách bảo mật",
+                    // 🟢 Đã sửa: Lấy chữ "Chính sách bảo mật" đa ngôn ngữ
+                    title = stringResource(R.string.about_privacy),
                     onClick = onPrivacyClick
                 )
             }

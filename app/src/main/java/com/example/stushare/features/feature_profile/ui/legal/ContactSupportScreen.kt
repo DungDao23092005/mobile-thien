@@ -29,10 +29,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.stushare.R
 import com.example.stushare.ui.theme.PrimaryGreen
 
 // Data Class cho câu hỏi
@@ -47,38 +48,21 @@ fun ContactSupportScreen(onBackClick: () -> Unit) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    // --- DANH SÁCH CÂU HỎI THƯỜNG GẶP ---
+    // --- DANH SÁCH CÂU HỎI THƯỜNG GẶP (Đã dùng stringResource) ---
     val faqList = listOf(
-        FAQItem(
-            question = "Làm thế nào để tải tài liệu lên?",
-            answer = "Tại màn hình Trang chủ, bạn nhấn vào nút '+' hoặc biểu tượng Tải lên (Upload). Sau đó chọn file PDF từ máy, điền thông tin mô tả và nhấn 'Đăng ngay'."
-        ),
-        FAQItem(
-            question = "Tôi quên mật khẩu thì phải làm sao?",
-            answer = "Tại màn hình Đăng nhập, hãy chọn 'Quên mật khẩu?'. Hệ thống sẽ gửi email hướng dẫn đặt lại mật khẩu cho bạn."
-        ),
-        FAQItem(
-            question = "Tại sao tài liệu của tôi bị từ chối?",
-            answer = "Tài liệu có thể bị từ chối nếu vi phạm bản quyền, chứa nội dung không phù hợp, chất lượng quá thấp hoặc không đúng định dạng PDF."
-        ),
-        FAQItem(
-            question = "Làm sao để báo cáo nội dung xấu?",
-            answer = "Trong trang chi tiết tài liệu, nhấn vào biểu tượng '...' ở góc trên và chọn 'Báo cáo vi phạm'. Chúng tôi sẽ xem xét trong vòng 24h."
-        ),
-        FAQItem(
-            question = "Tôi có thể đổi số điện thoại không?",
-            answer = "Có. Bạn vào Cài đặt -> Bảo mật tài khoản -> Nhấn vào số điện thoại để cập nhật số mới và xác thực OTP."
-        ),
-        FAQItem(
-            question = "StuShare có thu phí không?",
-            answer = "Hiện tại StuShare là nền tảng chia sẻ miễn phí cho cộng đồng học sinh, sinh viên."
-        )
+        FAQItem(stringResource(R.string.faq_q1), stringResource(R.string.faq_a1)),
+        FAQItem(stringResource(R.string.faq_q2), stringResource(R.string.faq_a2)),
+        FAQItem(stringResource(R.string.faq_q3), stringResource(R.string.faq_a3)),
+        FAQItem(stringResource(R.string.faq_q4), stringResource(R.string.faq_a4)),
+        FAQItem(stringResource(R.string.faq_q5), stringResource(R.string.faq_a5)),
+        FAQItem(stringResource(R.string.faq_q6), stringResource(R.string.faq_a6))
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Liên hệ & Hỗ trợ", color = Color.White, fontWeight = FontWeight.Bold) },
+                // 🟢 Đã sửa: Tiêu đề lấy từ resource
+                title = { Text(stringResource(R.string.support_header), color = Color.White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White)
@@ -98,7 +82,8 @@ fun ContactSupportScreen(onBackClick: () -> Unit) {
         ) {
             // --- PHẦN 1: KÊNH LIÊN HỆ ---
             Text(
-                text = "Kênh hỗ trợ trực tuyến",
+                // 🟢 Đã sửa: Header section 1
+                text = stringResource(R.string.support_online_channel),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -109,8 +94,10 @@ fun ContactSupportScreen(onBackClick: () -> Unit) {
                 // Nút Gọi Hotline
                 ContactCard(
                     icon = Icons.Default.Call,
-                    title = "Hotline",
-                    subTitle = "1900 1234",
+                    // 🟢 Đã sửa: Tiêu đề Hotline
+                    title = stringResource(R.string.support_hotline_title),
+                    // Số điện thoại giữ nguyên text cứng hoặc đưa vào resource nếu cần
+                    subTitle = "1900 1234", 
                     modifier = Modifier.weight(1f),
                     onClick = {
                         val intent = Intent(Intent.ACTION_DIAL).apply {
@@ -123,7 +110,8 @@ fun ContactSupportScreen(onBackClick: () -> Unit) {
                 // Nút Gửi Email
                 ContactCard(
                     icon = Icons.Default.Email,
-                    title = "Email",
+                    // 🟢 Đã sửa: Tiêu đề Email
+                    title = "Email", // Có thể dùng stringResource(R.string.acc_sec_email) nếu muốn
                     subTitle = "support@stushare.com",
                     modifier = Modifier.weight(1f),
                     onClick = {
@@ -140,7 +128,8 @@ fun ContactSupportScreen(onBackClick: () -> Unit) {
 
             // --- PHẦN 2: CÂU HỎI THƯỜNG GẶP (FAQ) ---
             Text(
-                text = "Câu hỏi thường gặp",
+                // 🟢 Đã sửa: Header FAQ
+                text = stringResource(R.string.faq_header),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,

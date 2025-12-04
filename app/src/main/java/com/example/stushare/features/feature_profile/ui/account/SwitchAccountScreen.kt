@@ -41,13 +41,10 @@ import com.example.stushare.ui.theme.PrimaryGreen
 @Composable
 fun SwitchAccountScreen(
     onBackClick: () -> Unit,
-    onAddAccountClick: (String?) -> Unit, // 🟢 Callback nhận Email (String?)
+    onAddAccountClick: (String?) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    // 1. Lấy trạng thái tài khoản hiện tại
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    
-    // 2. 🟢 Lấy danh sách tài khoản CŨ từ Room DB
     val otherAccounts by viewModel.otherAccounts.collectAsStateWithLifecycle()
 
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -59,6 +56,7 @@ fun SwitchAccountScreen(
             TopAppBar(
                 title = {
                     Text(
+                        // 🟢 Đã có: Tiêu đề màn hình
                         text = stringResource(R.string.switch_account),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
@@ -87,7 +85,8 @@ fun SwitchAccountScreen(
         ) {
             // --- PHẦN 1: TÀI KHOẢN HIỆN TẠI ---
             Text(
-                text = "Đang hoạt động",
+                // 🟢 Đã sửa: "Đang hoạt động" (Section Header)
+                text = stringResource(R.string.switch_acc_current_section),
                 style = MaterialTheme.typography.labelLarge,
                 color = onSurfaceColor.copy(alpha = 0.6f),
                 modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
@@ -102,7 +101,6 @@ fun SwitchAccountScreen(
                     )
                 }
                 else -> {
-                    // Loading hoặc chưa đăng nhập
                     Card(
                         modifier = Modifier.fillMaxWidth().height(80.dp),
                         colors = CardDefaults.cardColors(containerColor = surfaceColor)
@@ -117,19 +115,19 @@ fun SwitchAccountScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- PHẦN 2: DANH SÁCH TÀI KHOẢN CŨ (Lấy từ Room) ---
+            // --- PHẦN 2: DANH SÁCH TÀI KHOẢN CŨ ---
             if (otherAccounts.isNotEmpty()) {
                 Text(
-                    text = "Tài khoản đã lưu",
+                    // 🟢 Đã sửa: "Tài khoản đã lưu"
+                    text = stringResource(R.string.switch_acc_saved_section),
                     style = MaterialTheme.typography.labelLarge,
                     color = onSurfaceColor.copy(alpha = 0.6f),
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
                 )
 
-                // Dùng LazyColumn để hiển thị danh sách nếu có nhiều acc
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f, fill = false) // Co giãn theo nội dung nhưng không chiếm hết
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
                     items(otherAccounts) { oldUser ->
                         StoredAccountCard(
@@ -137,9 +135,7 @@ fun SwitchAccountScreen(
                             surfaceColor = surfaceColor,
                             onSurfaceColor = onSurfaceColor,
                             onClick = {
-                                // 🟢 LOGIC: Khi chọn tài khoản cũ
                                 viewModel.signOut()
-                                // Truyền email của user cũ ra ngoài để điền sẵn vào màn hình Login
                                 onAddAccountClick(oldUser.email) 
                             }
                         )
@@ -150,7 +146,8 @@ fun SwitchAccountScreen(
 
             // --- PHẦN 3: NÚT THÊM TÀI KHOẢN MỚI ---
             Text(
-                text = "Tùy chọn",
+                // 🟢 Đã sửa: "Tùy chọn"
+                text = stringResource(R.string.switch_acc_options_section),
                 style = MaterialTheme.typography.labelLarge,
                 color = onSurfaceColor.copy(alpha = 0.6f),
                 modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
@@ -164,7 +161,6 @@ fun SwitchAccountScreen(
                     .fillMaxWidth()
                     .clickable {
                         viewModel.signOut()
-                        // Truyền null để báo hiệu là thêm mới (không điền sẵn email)
                         onAddAccountClick(null)
                     }
             ) {
@@ -187,7 +183,8 @@ fun SwitchAccountScreen(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        text = "Đăng nhập tài khoản khác",
+                        // 🟢 Đã sửa: "Đăng nhập tài khoản khác"
+                        text = stringResource(R.string.switch_acc_login_other),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         color = onSurfaceColor
@@ -198,7 +195,6 @@ fun SwitchAccountScreen(
     }
 }
 
-// 🟢 Card hiển thị Tài khoản Hiện tại (Có tích xanh, viền xanh)
 @Composable
 fun CurrentAccountCard(
     userProfile: UserProfile,
@@ -217,7 +213,6 @@ fun CurrentAccountCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar
             if (!userProfile.avatarUrl.isNullOrEmpty()) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -259,7 +254,8 @@ fun CurrentAccountCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Đang hoạt động",
+                    // 🟢 Đã sửa: "Active" badge
+                    text = stringResource(R.string.switch_acc_active),
                     fontSize = 12.sp,
                     color = PrimaryGreen,
                     fontWeight = FontWeight.Medium
@@ -276,7 +272,6 @@ fun CurrentAccountCard(
     }
 }
 
-// 🟢 Card hiển thị Tài khoản Cũ (Nhạt hơn, không tích xanh)
 @Composable
 fun StoredAccountCard(
     user: UserEntity,
@@ -286,7 +281,6 @@ fun StoredAccountCard(
 ) {
     Card(
         shape = RoundedCornerShape(12.dp),
-        // Màu nền nhạt hơn hoặc trong suốt hơn để phân biệt
         colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.9f)),
         elevation = CardDefaults.cardElevation(1.dp),
         modifier = Modifier
@@ -297,7 +291,6 @@ fun StoredAccountCard(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar nhỏ hơn chút (40dp)
             if (!user.avatarUrl.isNullOrEmpty()) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)

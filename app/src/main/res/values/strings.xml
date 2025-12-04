@@ -231,4 +231,28 @@
     <string name="time_hours_ago">%1$d giờ trước</string>
     <string name="time_days_ago">%1$d ngày trước</string>
 
+    <string name="switch_acc_current_section">Đang hoạt động</string>
+    <string name="switch_acc_saved_section">Tài khoản đã lưu</string>
+    <string name="switch_acc_options_section">Tùy chọn</string>
+    <string name="switch_acc_login_other">Đăng nhập tài khoản khác</string>
+
+    <string name="faq_header">Câu hỏi thường gặp</string>
+    
+    <string name="faq_q1">Làm thế nào để tải tài liệu lên?</string>
+    <string name="faq_a1">Tại màn hình Trang chủ, bạn nhấn vào nút \'+\' hoặc biểu tượng Tải lên (Upload). Sau đó chọn file PDF từ máy, điền thông tin mô tả và nhấn \'Đăng ngay\'.</string>
+    
+    <string name="faq_q2">Tôi quên mật khẩu thì phải làm sao?</string>
+    <string name="faq_a2">Tại màn hình Đăng nhập, hãy chọn \'Quên mật khẩu?\'. Hệ thống sẽ gửi email hướng dẫn đặt lại mật khẩu cho bạn.</string>
+    
+    <string name="faq_q3">Tại sao tài liệu của tôi bị từ chối?</string>
+    <string name="faq_a3">Tài liệu có thể bị từ chối nếu vi phạm bản quyền, chứa nội dung không phù hợp, chất lượng quá thấp hoặc không đúng định dạng PDF.</string>
+    
+    <string name="faq_q4">Làm sao để báo cáo nội dung xấu?</string>
+    <string name="faq_a4">Trong trang chi tiết tài liệu, nhấn vào biểu tượng \'...\' ở góc trên và chọn \'Báo cáo vi phạm\'. Chúng tôi sẽ xem xét trong vòng 24h.</string>
+    
+    <string name="faq_q5">Tôi có thể đổi số điện thoại không?</string>
+    <string name="faq_a5">Có. Bạn vào Cài đặt -> Bảo mật tài khoản -> Nhấn vào số điện thoại để cập nhật số mới và xác thực OTP.</string>
+    
+    <string name="faq_q6">StuShare có thu phí không?</string>
+    <string name="faq_a6">Hiện tại StuShare là nền tảng chia sẻ miễn phí cho cộng đồng học sinh, sinh viên.</string>
 </resources>

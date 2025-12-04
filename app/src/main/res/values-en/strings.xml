@@ -126,6 +126,10 @@
     <string name="switch_acc_add">Add New Account</string>
     <string name="switch_acc_switched">Switched to: %1$s</string>
     <string name="switch_acc_active">Active</string>
+    <string name="switch_acc_current_section">Current Account</string>
+    <string name="switch_acc_saved_section">Saved Accounts</string>
+    <string name="switch_acc_options_section">Options</string>
+    <string name="switch_acc_login_other">Log in to another account</string>
 
     <string name="settings_title">Settings</string>
     <string name="acc_security">Account &amp; Security</string>
@@ -139,10 +143,14 @@
     <string name="profile_tab_posted">Posted</string>
     <string name="profile_tab_saved">Saved</string>
     <string name="profile_tab_downloaded">Downloaded</string>
-
+    <string name="profile_documents">Documents</string>
+    <string name="profile_downloads">Downloads</string>
+    <string name="rank_new_member">New Member</string>
+    <string name="rank_title">Rank</string>
+    <string name="profile_dept">Faculty / Department</string>
+    <string name="subject_mechanical">Mechanical Engineering</string>
     <string name="profile_guest">Guest</string>
     <string name="profile_hello">Hello, %1$s</string>
-    <string name="profile_dept">Faculty / Department</string>
     <string name="profile_empty_list">List is empty</string>
     <string name="profile_view_leaderboard">View Leaderboard</string>
     <string name="profile_delete_success">Deleted successfully</string>
@@ -200,16 +208,10 @@
 
     <string name="search_placeholder">Search documents, subjects...</string>
     <string name="subjects">Subjects</string>
-    <string name="subject_mechanical">Mechanical Eng</string>
 
     <string name="upload_document_title">Upload Document</string>
 
     <string name="notifications_title">Notifications</string>
-
-    <string name="profile_documents">Documents</string>
-    <string name="profile_downloads">Downloads</string>
-    <string name="rank_new_member">New Member</string>
-    <string name="rank_title">Rank</string>
 
     <string name="create_new_request">New Request</string>
     <string name="post_request">Post</string>
@@ -239,4 +241,23 @@
     <string name="time_minutes_ago">%1$d mins ago</string>
     <string name="time_hours_ago">%1$d hours ago</string>
     <string name="time_days_ago">%1$d days ago</string>
+    <string name="faq_header">Frequently Asked Questions</string>
+
+    <string name="faq_q1">How do I upload a document?</string>
+    <string name="faq_a1">On the Home screen, tap the \'+\' button or Upload icon. Then select a PDF file, enter a description, and tap \'Post Now\'.</string>
+
+    <string name="faq_q2">What if I forgot my password?</string>
+    <string name="faq_a2">On the Login screen, select \'Forgot Password?\'. The system will send you an email with instructions to reset it.</string>
+
+    <string name="faq_q3">Why was my document rejected?</string>
+    <string name="faq_a3">Documents may be rejected for copyright violations, inappropriate content, poor quality, or incorrect PDF format.</string>
+
+    <string name="faq_q4">How do I report bad content?</string>
+    <string name="faq_a4">In the document details, tap the \'...\' icon at the top and select \'Report Violation\'. We will review it within 24 hours.</string>
+
+    <string name="faq_q5">Can I change my phone number?</string>
+    <string name="faq_a5">Yes. Go to Settings -> Account Security -> Tap on Phone Number to update and verify via OTP.</string>
+
+    <string name="faq_q6">Does StuShare charge fees?</string>
+    <string name="faq_a6">Currently, StuShare is a free sharing platform for the student community.</string>
 </resources>

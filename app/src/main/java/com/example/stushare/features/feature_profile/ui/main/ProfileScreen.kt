@@ -157,7 +157,13 @@ fun AuthenticatedProfileContent(
     Box(modifier = Modifier.fillMaxSize().pullRefresh(pullRefreshState)) {
         Column(modifier = Modifier.fillMaxSize()) {
             val userName = stringResource(R.string.profile_hello, userProfile.fullName)
-            val displayMajor = if (userProfile.major.isNotBlank() && userProfile.major != "Chưa cập nhật") userProfile.major else stringResource(R.string.profile_dept)
+
+            // 🟢 UPDATE: Xử lý hiển thị môn học (đa ngôn ngữ cho 'Cơ khí')
+            val displayMajor = when (userProfile.major) {
+                "Cơ khí" -> stringResource(R.string.subject_mechanical) // Dịch nếu là Cơ khí
+                "Chưa cập nhật", "" -> stringResource(R.string.profile_dept)
+                else -> userProfile.major // Các ngành khác hiển thị nguyên gốc
+            }
 
             ProfileHeader(userName, displayMajor, userProfile.avatarUrl, onSettingsClick = onNavigateToSettings, onLeaderboardClick = onNavigateToLeaderboard, onAvatarClick = onAvatarClick)
 
@@ -183,6 +189,7 @@ fun AuthenticatedProfileContent(
                 }
             }
 
+            // 🟢 UPDATE: Truyền memberRank xuống để xử lý hiển thị đa ngôn ngữ
             StatisticsRow(totalDocs, totalDownloads, memberRank)
             Divider(color = Color.LightGray.copy(alpha = 0.3f))
 
@@ -228,12 +235,18 @@ fun ProfileEmptyState(message: String, buttonText: String, icon: ImageVector, on
 
 @Composable
 fun StatisticsRow(totalDocs: Int, totalDownloads: Int, memberRank: String, modifier: Modifier = Modifier) {
+    // 🟢 UPDATE: Xử lý hiển thị Rank (nếu là 'Thành viên mới' thì dùng resource)
+    val displayRank = if (memberRank == "Thành viên mới") stringResource(R.string.rank_new_member) else memberRank
+
     Row(modifier = modifier.fillMaxWidth().background(Color.White).padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-        StatItem(count = totalDocs.toString(), label = "Tài liệu")
+        // 🟢 UPDATE: Dùng stringResource cho Label
+        StatItem(count = totalDocs.toString(), label = stringResource(R.string.profile_documents))
         Divider(modifier = Modifier.height(40.dp).width(1.dp), color = Color.LightGray.copy(alpha = 0.5f))
-        StatItem(count = totalDownloads.toString(), label = "Lượt tải")
+        // 🟢 UPDATE: Dùng stringResource cho Label
+        StatItem(count = totalDownloads.toString(), label = stringResource(R.string.profile_downloads))
         Divider(modifier = Modifier.height(40.dp).width(1.dp), color = Color.LightGray.copy(alpha = 0.5f))
-        StatItem(count = memberRank, label = "Hạng", isRank = true)
+        // 🟢 UPDATE: Dùng stringResource cho Label và hiển thị Rank đã xử lý
+        StatItem(count = displayRank, label = stringResource(R.string.rank_title), isRank = true)
     }
 }
 
