@@ -9,7 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Refresh // Icon cho Dialog Restart
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.stushare.R
-import com.example.stushare.core.utils.restartApp // 👈 Import hàm tiện ích restart
+// import com.example.stushare.core.utils.restartApp // <-- Không cần dùng nữa
 import com.example.stushare.ui.theme.PrimaryGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,9 +43,9 @@ fun AppearanceSettingsScreen(
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showFontDialog by remember { mutableStateOf(false) }
 
-    // ⭐️ State mới: Dialog xác nhận khởi động lại
+    // State Dialog xác nhận khởi động lại (đổi ngôn ngữ)
     var showRestartDialog by remember { mutableStateOf(false) }
-    var pendingLanguage by remember { mutableStateOf("") } // Lưu ngôn ngữ user định chọn
+    var pendingLanguage by remember { mutableStateOf("") }
 
     // Màu sắc từ Theme
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -229,7 +229,7 @@ fun AppearanceSettingsScreen(
                         if (currentLang != "vi") {
                             pendingLanguage = "vi"
                             showLanguageDialog = false
-                            showRestartDialog = true // 👉 Kích hoạt Dialog Restart
+                            showRestartDialog = true
                         } else {
                             showLanguageDialog = false
                         }
@@ -238,7 +238,7 @@ fun AppearanceSettingsScreen(
                         if (currentLang != "en") {
                             pendingLanguage = "en"
                             showLanguageDialog = false
-                            showRestartDialog = true // 👉 Kích hoạt Dialog Restart
+                            showRestartDialog = true
                         } else {
                             showLanguageDialog = false
                         }
@@ -256,22 +256,23 @@ fun AppearanceSettingsScreen(
         )
     }
 
-    // ⭐️ DIALOG XÁC NHẬN KHỞI ĐỘNG LẠI APP (MỚI)
+    // ⭐️ DIALOG XÁC NHẬN (ĐÃ SỬA LOGIC)
     if (showRestartDialog) {
         AlertDialog(
             onDismissRequest = { showRestartDialog = false },
             icon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = PrimaryGreen) },
             title = { Text("Cần khởi động lại") },
             text = {
-                Text("Để thay đổi ngôn ngữ hoàn tất, ứng dụng cần được khởi động lại. Bạn có muốn tiếp tục?")
+                Text("Để thay đổi ngôn ngữ hoàn tất, ứng dụng cần được tải lại. Bạn có muốn tiếp tục?")
             },
             confirmButton = {
                 Button(
                     onClick = {
                         showRestartDialog = false
-                        // Gọi ViewModel để lưu và restart
+                        // CHỈ LƯU VÀO DATASTORE. KHÔNG GỌI RESTART APP THỦ CÔNG.
+                        // MainActivity sẽ lắng nghe và tự recreate activity.
                         viewModel.setLanguageAndRestart(pendingLanguage) {
-                            context.restartApp() // Gọi hàm extension
+                            // Empty lambda: Không làm gì ở đây cả
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)

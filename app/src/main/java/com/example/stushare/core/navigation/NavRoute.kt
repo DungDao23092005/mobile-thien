@@ -46,4 +46,7 @@ sealed interface NavRoute {
     @Serializable data object ReportViolation : NavRoute
     @Serializable data object SwitchAccount : NavRoute
     @Serializable data object PersonalInfo : NavRoute
+
+    @Serializable data object TermsOfUse : NavRoute    
+    @Serializable data object PrivacyPolicy : NavRoute
 }

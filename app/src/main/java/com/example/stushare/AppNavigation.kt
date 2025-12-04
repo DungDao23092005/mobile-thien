@@ -71,6 +71,10 @@ import com.example.stushare.features.feature_profile.ui.settings.appearance.Appe
 import com.example.stushare.features.feature_profile.ui.legal.AboutAppScreen
 import com.example.stushare.features.feature_profile.ui.legal.ContactSupportScreen
 import com.example.stushare.features.feature_profile.ui.legal.ReportViolationScreen
+// ⭐️ THÊM 2 IMPORT NÀY:
+import com.example.stushare.features.feature_profile.ui.legal.TermsOfUseScreen
+import com.example.stushare.features.feature_profile.ui.legal.PrivacyPolicyScreen
+
 import com.example.stushare.feature_request.ui.detail.RequestDetailScreen
 
 // 🟢 ADMIN IMPORTS
@@ -284,8 +288,6 @@ fun AppNavigation(
                 onDocumentClick = { docId -> navController.navigate(NavRoute.DocumentDetail(docId)) },
                 onNavigateToUpload = { navController.navigate(NavRoute.Upload) },
                 onNavigateToHome = { navController.navigate(NavRoute.Home) },
-
-                // Điều hướng tới Admin Dashboard
                 onNavigateToAdmin = { navController.navigate(NavRoute.AdminDashboard) }
             )
         }
@@ -350,7 +352,6 @@ fun AppNavigation(
             val viewModel = hiltViewModel<ProfileViewModel>()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            // Lấy email và SĐT từ ViewModel
             val user = FirebaseAuth.getInstance().currentUser
             val currentEmail = user?.email ?: ""
             val currentPhone = user?.phoneNumber ?: ""
@@ -360,21 +361,14 @@ fun AppNavigation(
                 userPhone = currentPhone,
                 onBackClick = { navController.popBackStack() },
                 onPersonalInfoClick = { navController.navigate(NavRoute.PersonalInfo) },
-                
-                // 🟢 SĐT: Vẫn cho phép bấm vào để chỉnh sửa
-                onPhoneClick = { navController.navigate(NavRoute.EditPhone) }, 
-
-                // 🔴 EMAIL: Bấm vào KHÔNG làm gì cả (không Toast, không navigate)
-                onEmailClick = { 
-                    // Empty lambda: Không có phản hồi gì khi click
-                },
-                
+                onPhoneClick = { navController.navigate(NavRoute.EditPhone) },
+                onEmailClick = { }, // Không cho chỉnh sửa email trực tiếp
                 onPasswordClick = { navController.navigate(NavRoute.ChangePassword) },
                 onDeleteAccountClick = { Toast.makeText(context, "Chức năng cần xác thực lại", Toast.LENGTH_SHORT).show() }
             )
         }
 
-        // 🟢 ROUTE MỚI: CHỈNH SỬA EMAIL (ĐỂ DÀNH, CHƯA DÙNG)
+        // 🟢 ROUTE MỚI: CHỈNH SỬA EMAIL
         composable<NavRoute.EditEmail>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
@@ -383,11 +377,9 @@ fun AppNavigation(
             val viewModel = hiltViewModel<ProfileViewModel>()
             val user = FirebaseAuth.getInstance().currentUser
             
-            // Các biến trạng thái để quản lý Dialog
             var showPasswordDialog by remember { mutableStateOf(false) }
             var pendingNewEmail by remember { mutableStateOf("") }
 
-            // Lắng nghe kết quả từ ViewModel
             LaunchedEffect(Unit) {
                 viewModel.updateMessage.collect { msg ->
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -397,7 +389,6 @@ fun AppNavigation(
                 }
             }
 
-            // Màn hình chính
             EditAttributeScreen(
                 title = "Cập nhật Email",
                 initialValue = user?.email ?: "",
@@ -407,27 +398,24 @@ fun AppNavigation(
                     if (newEmail == user?.email) {
                         Toast.makeText(context, "Email mới trùng với email hiện tại", Toast.LENGTH_SHORT).show()
                     } else {
-                        // Lưu email tạm và hiện Dialog nhập pass
                         pendingNewEmail = newEmail
                         showPasswordDialog = true
                     }
                 }
             )
 
-            // Hiển thị Dialog nếu cần
             if (showPasswordDialog) {
                 ReAuthenticateDialog(
                     onDismiss = { showPasswordDialog = false },
                     onConfirm = { password ->
                         showPasswordDialog = false
-                        // Gọi ViewModel để thực hiện đổi email
                         viewModel.updateEmail(currentPass = password, newEmail = pendingNewEmail)
                     }
                 )
             }
         }
 
-        // 🟢 ROUTE MỚI: CHỈNH SỬA SỐ ĐIỆN THOẠI (HOẠT ĐỘNG BÌNH THƯỜNG)
+        // 🟢 ROUTE MỚI: CHỈNH SỬA SỐ ĐIỆN THOẠI
         composable<NavRoute.EditPhone>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
@@ -457,14 +445,10 @@ fun AppNavigation(
                 onBackClick = { navController.popBackStack() },
                 onSaveClick = { rawPhone ->
                     if (activity != null && rawPhone.isNotBlank()) {
-                        
-                        // 🟢 FIX LỖI FORMAT: Tự động chuyển đổi sang +84
                         var formattedPhone = rawPhone.trim()
                         if (formattedPhone.startsWith("0")) {
-                            // Chuyển 09... thành +849...
                             formattedPhone = "+84" + formattedPhone.substring(1)
                         } else if (!formattedPhone.startsWith("+")) {
-                            // Nếu nhập 9... thì thêm +84 vào đầu
                             formattedPhone = "+84$formattedPhone"
                         }
 
@@ -472,7 +456,7 @@ fun AppNavigation(
                         Toast.makeText(context, "Đang gửi OTP đến $formattedPhone...", Toast.LENGTH_SHORT).show()
                         
                         viewModel.sendOtp(
-                            phoneNumber = formattedPhone, // Gửi số đã format
+                            phoneNumber = formattedPhone,
                             activity = activity,
                             onCodeSent = {
                                 isLoading = false
@@ -565,15 +549,15 @@ fun AppNavigation(
             AppearanceSettingsScreen(viewModel = viewModel, onBackClick = { navController.popBackStack() })
         }
 
+        // 🟢 CÁC MÀN HÌNH PHÁP LÝ (ĐÃ SỬA VỊ TRÍ)
         composable<NavRoute.AboutApp>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
-            val context = LocalContext.current
             AboutAppScreen(
                 onBackClick = { navController.popBackStack() },
-                onPrivacyClick = { Toast.makeText(context, "Đang mở chính sách...", Toast.LENGTH_SHORT).show() },
-                onTermsClick = { Toast.makeText(context, "Đang mở điều khoản...", Toast.LENGTH_SHORT).show() }
+                onTermsClick = { navController.navigate(NavRoute.TermsOfUse) },     
+                onPrivacyClick = { navController.navigate(NavRoute.PrivacyPolicy) } 
             )
         }
 
@@ -590,10 +574,19 @@ fun AppNavigation(
         ) {
             ReportViolationScreen(onBackClick = { navController.popBackStack() })
         }
-    }
+
+        // 🟢 THÊM MỚI TERMS VÀ PRIVACY (Ở TRONG NAVHOST)
+        composable<NavRoute.TermsOfUse> {
+            TermsOfUseScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable<NavRoute.PrivacyPolicy> {
+            PrivacyPolicyScreen(onBackClick = { navController.popBackStack() })
+        }
+    } // Kết thúc NavHost
 }
 
-// 🟢 COMPONENT: HỘP THOẠI XÁC THỰC MẬT KHẨU
+// 🟢 COMPONENT: HỘP THOẠI XÁC THỰC MẬT KHẨU (Để ngoài AppNavigation)
 @Composable
 fun ReAuthenticateDialog(
     onDismiss: () -> Unit,
@@ -613,7 +606,7 @@ fun ReAuthenticateDialog(
                     onValueChange = { password = it },
                     label = { Text("Mật khẩu") },
                     singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(), // Ẩn mật khẩu
+                    visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
                 )
             }

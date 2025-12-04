@@ -41,20 +41,28 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
 
+            // 1. Dark Theme
             val isDarkTheme by settingsRepository.isDarkTheme
                 .collectAsState(initial = isSystemInDarkTheme())
 
+            // 2. Font Scale
             val fontScale by settingsRepository.fontScale
                 .collectAsState(initial = 1.0f)
 
+            // 3. Language - QUAN TRỌNG: Để initial = null để đợi DataStore load xong
             val languageCode by settingsRepository.languageCode
-                .collectAsState(initial = "vi")
+                .collectAsState(initial = null)
 
+            // Xử lý thay đổi ngôn ngữ
             LaunchedEffect(languageCode) {
-                val currentLocales = AppCompatDelegate.getApplicationLocales()
-                val newLocale = LocaleListCompat.forLanguageTags(languageCode)
-                if (currentLocales.toLanguageTags() != languageCode) {
-                    AppCompatDelegate.setApplicationLocales(newLocale)
+                // Chỉ chạy khi languageCode đã có dữ liệu (không null)
+                languageCode?.let { code ->
+                    val currentLocales = AppCompatDelegate.getApplicationLocales()
+                    // So sánh ngôn ngữ hiện tại và ngôn ngữ trong cài đặt
+                    if (currentLocales.toLanguageTags() != code) {
+                        val newLocale = LocaleListCompat.forLanguageTags(code)
+                        AppCompatDelegate.setApplicationLocales(newLocale)
+                    }
                 }
             }
 
@@ -74,10 +82,11 @@ fun MainAppScreen(windowSizeClass: WindowSizeClass) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Kết nối ViewModel để lấy dữ liệu Badge
+    // Kết nối ViewModel để lấy dữ liệu Badge (số lượng thông báo chưa đọc)
     val mainViewModel: MainViewModel = hiltViewModel()
     val unreadCount by mainViewModel.unreadCount.collectAsState(initial = 0)
 
+    // Các màn hình cần hiển thị BottomNavigationBar
     val showBottomBar = listOf(
         NavRoute.Home,
         NavRoute.Search,
@@ -91,6 +100,7 @@ fun MainAppScreen(windowSizeClass: WindowSizeClass) {
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
+                // Đảm bảo BottomBar không bị ảnh hưởng bởi FontScale người dùng chọn
                 val currentDensity = LocalDensity.current
                 CompositionLocalProvider(
                     LocalDensity provides Density(density = currentDensity.density, fontScale = 1.0f)

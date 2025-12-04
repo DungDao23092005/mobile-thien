@@ -1,22 +1,30 @@
 package com.example.stushare.features.feature_profile.ui.legal
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// ⭐️ QUAN TRỌNG: Import đúng R và Theme của dự án chính
 import com.example.stushare.R
 import com.example.stushare.ui.theme.PrimaryGreen
 
@@ -24,13 +32,9 @@ import com.example.stushare.ui.theme.PrimaryGreen
 @Composable
 fun AboutAppScreen(
     onBackClick: () -> Unit,
-    onTermsClick: () -> Unit,
-    onPrivacyClick: () -> Unit
+    onTermsClick: () -> Unit,   // Thêm callback
+    onPrivacyClick: () -> Unit  // Thêm callback
 ) {
-    // Lấy màu động từ Theme
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val dividerColor = MaterialTheme.colorScheme.outlineVariant
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -38,111 +42,111 @@ fun AboutAppScreen(
                     Text(
                         text = stringResource(R.string.about_stushare),
                         color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Quay về",
-                            tint = Color.White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White)
                     }
                 },
-                // ⭐️ SỬA: Dùng PrimaryGreen thay vì GreenPrimary
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = PrimaryGreen)
             )
-        },
-        containerColor = backgroundColor // Nền động
+        }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // --- LOGO & APP NAME ---
+            Image(
+                painter = painterResource(id = R.drawable.logo), // Đảm bảo có ảnh logo trong drawabl
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color.White),
+                contentScale = ContentScale.Fit
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "StuShare",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = PrimaryGreen
+            )
+
+            Text(
+                text = "Phiên bản 1.0.0",
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // --- MENU OPTIONS ---
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
             ) {
-                // Item 1: Phiên bản
-                AboutItem(
-                    title = stringResource(R.string.about_version_title),
-                    subtitle = stringResource(R.string.about_version_subtitle),
-                    onClick = { }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Item 2: Điều khoản sử dụng
-                AboutItem(
-                    title = stringResource(R.string.about_terms),
+                AboutMenuItem(
+                    icon = Icons.Default.Info,
+                    title = "Điều khoản sử dụng",
                     onClick = onTermsClick
                 )
-
-                HorizontalDivider(thickness = 1.dp, color = dividerColor)
-
-                // Item 3: Chính sách bảo mật
-                AboutItem(
-                    title = stringResource(R.string.about_privacy),
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                AboutMenuItem(
+                    icon = Icons.Default.Lock,
+                    title = "Chính sách bảo mật",
                     onClick = onPrivacyClick
                 )
             }
 
-            // Bottom Curve (Trang trí dưới đáy)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .offset(y = 60.dp)
-                    .background(
-                        // ⭐️ SỬA: Dùng PrimaryGreen
-                        color = PrimaryGreen,
-                        shape = RoundedCornerShape(topStart = 1000.dp, topEnd = 1000.dp)
-                    )
+            Spacer(modifier = Modifier.weight(1f))
+
+            // --- COPYRIGHT ---
+            Text(
+                text = "© 2025 StuShare Inc.\nAll rights reserved.",
+                textAlign = TextAlign.Center,
+                fontSize = 12.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 24.dp)
             )
         }
     }
 }
 
 @Composable
-fun AboutItem(
-    title: String,
-    subtitle: String? = null,
-    onClick: () -> Unit
-) {
-    // Màu động cho Item
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-
+fun AboutMenuItem(icon: ImageVector, title: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(surfaceColor) // Nền Item động
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = onSurfaceColor // Chữ tiêu đề động
-            )
-            if (subtitle != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = subtitle,
-                    fontSize = 13.sp,
-                    color = onSurfaceColor.copy(alpha = 0.6f) // Chữ phụ động (nhạt hơn)
-                )
-            }
-        }
-
+        Icon(imageVector = icon, contentDescription = null, tint = PrimaryGreen)
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            modifier = Modifier.weight(1f),
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
-            tint = onSurfaceColor.copy(alpha = 0.4f) // Icon mũi tên động
+            tint = Color.Gray
         )
     }
 }
