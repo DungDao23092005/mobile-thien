@@ -25,7 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp // 🟢 ĐÃ THÊM IMPORT NÀY
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -341,6 +341,7 @@ fun AppNavigation(
             )
         }
 
+        // 🟢 MÀN HÌNH TÀI KHOẢN & BẢO MẬT
         composable<NavRoute.AccountSecurity>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
@@ -349,7 +350,7 @@ fun AppNavigation(
             val viewModel = hiltViewModel<ProfileViewModel>()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            // Lấy email và SĐT từ ViewModel (ProfileUiState)
+            // Lấy email và SĐT từ ViewModel
             val user = FirebaseAuth.getInstance().currentUser
             val currentEmail = user?.email ?: ""
             val currentPhone = user?.phoneNumber ?: ""
@@ -359,16 +360,21 @@ fun AppNavigation(
                 userPhone = currentPhone,
                 onBackClick = { navController.popBackStack() },
                 onPersonalInfoClick = { navController.navigate(NavRoute.PersonalInfo) },
-                // 🟢 Chuyển sang màn hình EditPhone
-                onPhoneClick = { navController.navigate(NavRoute.EditPhone) },
-                // 🟢 Chuyển sang màn hình EditEmail
-                onEmailClick = { navController.navigate(NavRoute.EditEmail) },
+                
+                // 🟢 SĐT: Vẫn cho phép bấm vào để chỉnh sửa
+                onPhoneClick = { navController.navigate(NavRoute.EditPhone) }, 
+
+                // 🔴 EMAIL: Bấm vào KHÔNG làm gì cả (không Toast, không navigate)
+                onEmailClick = { 
+                    // Empty lambda: Không có phản hồi gì khi click
+                },
+                
                 onPasswordClick = { navController.navigate(NavRoute.ChangePassword) },
                 onDeleteAccountClick = { Toast.makeText(context, "Chức năng cần xác thực lại", Toast.LENGTH_SHORT).show() }
             )
         }
 
-        // 🟢 ROUTE MỚI: CHỈNH SỬA EMAIL
+        // 🟢 ROUTE MỚI: CHỈNH SỬA EMAIL (ĐỂ DÀNH, CHƯA DÙNG)
         composable<NavRoute.EditEmail>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
@@ -381,12 +387,12 @@ fun AppNavigation(
             var showPasswordDialog by remember { mutableStateOf(false) }
             var pendingNewEmail by remember { mutableStateOf("") }
 
-            // Lắng nghe kết quả từ ViewModel (để hiển thị Toast hoặc đóng màn hình)
+            // Lắng nghe kết quả từ ViewModel
             LaunchedEffect(Unit) {
                 viewModel.updateMessage.collect { msg ->
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                     if (msg.contains("thành công", ignoreCase = true)) {
-                        navController.popBackStack() // Quay về nếu thành công
+                        navController.popBackStack() 
                     }
                 }
             }
@@ -421,25 +427,106 @@ fun AppNavigation(
             }
         }
 
-        // 🟢 ROUTE MỚI: CHỈNH SỬA SỐ ĐIỆN THOẠI
+        // 🟢 ROUTE MỚI: CHỈNH SỬA SỐ ĐIỆN THOẠI (HOẠT ĐỘNG BÌNH THƯỜNG)
         composable<NavRoute.EditPhone>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
             val context = LocalContext.current
+            val activity = LocalContext.current as? android.app.Activity
             val user = FirebaseAuth.getInstance().currentUser
+            val viewModel = hiltViewModel<ProfileViewModel>()
+
+            var showOtpDialog by remember { mutableStateOf(false) }
+            var isLoading by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                viewModel.updateMessage.collect { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    if (msg.contains("thành công", ignoreCase = true)) {
+                        showOtpDialog = false
+                        navController.popBackStack()
+                    }
+                }
+            }
 
             EditAttributeScreen(
                 title = "Cập nhật SĐT",
                 initialValue = user?.phoneNumber ?: "",
-                label = "Số điện thoại mới (+84...)",
+                label = "Số điện thoại mới (VD: 0912...)",
                 onBackClick = { navController.popBackStack() },
-                onSaveClick = { newPhone ->
-                    Toast.makeText(context, "Đang gửi mã OTP đến $newPhone...", Toast.LENGTH_SHORT).show()
-                    // Logic thực tế cần quy trình Verify OTP của Firebase Phone Auth
-                    navController.popBackStack()
+                onSaveClick = { rawPhone ->
+                    if (activity != null && rawPhone.isNotBlank()) {
+                        
+                        // 🟢 FIX LỖI FORMAT: Tự động chuyển đổi sang +84
+                        var formattedPhone = rawPhone.trim()
+                        if (formattedPhone.startsWith("0")) {
+                            // Chuyển 09... thành +849...
+                            formattedPhone = "+84" + formattedPhone.substring(1)
+                        } else if (!formattedPhone.startsWith("+")) {
+                            // Nếu nhập 9... thì thêm +84 vào đầu
+                            formattedPhone = "+84$formattedPhone"
+                        }
+
+                        isLoading = true
+                        Toast.makeText(context, "Đang gửi OTP đến $formattedPhone...", Toast.LENGTH_SHORT).show()
+                        
+                        viewModel.sendOtp(
+                            phoneNumber = formattedPhone, // Gửi số đã format
+                            activity = activity,
+                            onCodeSent = {
+                                isLoading = false
+                                showOtpDialog = true
+                                Toast.makeText(context, "Đã gửi mã OTP!", Toast.LENGTH_SHORT).show()
+                            },
+                            onError = { errorMsg ->
+                                isLoading = false
+                                Toast.makeText(context, "Lỗi: $errorMsg", Toast.LENGTH_LONG).show()
+                            }
+                        )
+                    } else {
+                        Toast.makeText(context, "Vui lòng nhập số điện thoại", Toast.LENGTH_SHORT).show()
+                    }
                 }
             )
+
+            if (showOtpDialog) {
+                var otpCode by remember { mutableStateOf("") }
+                
+                AlertDialog(
+                    onDismissRequest = { showOtpDialog = false },
+                    title = { Text("Nhập mã xác thực") },
+                    text = {
+                        Column {
+                            Text("Mã OTP đã được gửi đến số điện thoại của bạn.")
+                            Spacer(modifier = Modifier.height(16.dp))
+                            OutlinedTextField(
+                                value = otpCode,
+                                onValueChange = { otpCode = it },
+                                label = { Text("Mã OTP (6 số)") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(onClick = { 
+                            if (otpCode.length == 6) {
+                                viewModel.verifyAndUpdatePhone(otpCode)
+                            } else {
+                                Toast.makeText(context, "Mã OTP phải có 6 số", Toast.LENGTH_SHORT).show()
+                            }
+                        }) {
+                            Text("Xác nhận")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showOtpDialog = false }) {
+                            Text("Hủy")
+                        }
+                    }
+                )
+            }
         }
 
         composable<NavRoute.PersonalInfo>(

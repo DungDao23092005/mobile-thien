@@ -1,14 +1,19 @@
 package com.example.stushare.features.feature_profile.ui.main
 
+import android.app.Activity
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stushare.core.data.repository.DocumentRepository
 import com.example.stushare.features.feature_profile.ui.model.DocItem
 import com.example.stushare.features.feature_profile.ui.model.UserProfile
+import com.google.firebase.FirebaseException
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthOptions
+import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -21,9 +26,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-// 1. UI STATE
 sealed interface ProfileUiState {
     data object Loading : ProfileUiState
     data object Unauthenticated : ProfileUiState
@@ -53,6 +58,8 @@ class ProfileViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
+    private var verificationId: String = ""
+
     private val authStateFlow: Flow<FirebaseUser?> = callbackFlow {
         val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             trySend(firebaseAuth.currentUser)
@@ -62,12 +69,10 @@ class ProfileViewModel @Inject constructor(
         awaitClose { auth.removeAuthStateListener(authStateListener) }
     }.flowOn(Dispatchers.IO)
 
-    // 2. UI STATE CHÍNH
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ProfileUiState> = authStateFlow
         .flatMapLatest { user ->
             if (user != null) {
-                // Lấy thông tin user từ Firestore (Major, Bio, Role)
                 val userDocFlow = callbackFlow {
                     val docRef = firestore.collection("users").document(user.uid)
                     val listener = docRef.addSnapshotListener { snapshot, _ ->
@@ -76,7 +81,6 @@ class ProfileViewModel @Inject constructor(
                     awaitClose { listener.remove() }
                 }
 
-                // Lấy danh sách tài liệu
                 val docsFlow = documentRepository.getDocumentsByAuthor(user.uid)
 
                 combine(userDocFlow, docsFlow) { snapshot, documents ->
@@ -91,10 +95,9 @@ class ProfileViewModel @Inject constructor(
                         else -> "Thành viên mới"
                     }
 
-                    // 🟢 CẬP NHẬT: Lấy thêm Role
                     val major = snapshot?.getString("major") ?: "Chưa cập nhật"
                     val bio = snapshot?.getString("bio") ?: ""
-                    val role = snapshot?.getString("role") ?: "user" // Mặc định là user
+                    val role = snapshot?.getString("role") ?: "user" 
 
                     val profile = UserProfile(
                         id = user.uid,
@@ -103,7 +106,7 @@ class ProfileViewModel @Inject constructor(
                         avatarUrl = user.photoUrl?.toString(),
                         major = major,
                         bio = bio,
-                        role = role // 🟢 Gán role vào model
+                        role = role
                     )
 
                     ProfileUiState.Authenticated(
@@ -173,7 +176,6 @@ class ProfileViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // --- ACTIONS ---
 
     fun refreshData() {
         viewModelScope.launch {
@@ -290,4 +292,60 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun signOut() { auth.signOut() }
+
+    fun sendOtp(
+        phoneNumber: String,
+        activity: Activity,
+        onCodeSent: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val options = PhoneAuthOptions.newBuilder(auth)
+            .setPhoneNumber(phoneNumber)      
+            .setTimeout(60L, TimeUnit.SECONDS) 
+            .setActivity(activity)            
+            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                    // Auto-retrieval or instant verification
+                    updatePhoneNumber(credential)
+                }
+
+                override fun onVerificationFailed(e: FirebaseException) {
+                    onError(e.message ?: "Gửi OTP thất bại")
+                }
+
+                override fun onCodeSent(
+                    vId: String,
+                    token: PhoneAuthProvider.ForceResendingToken
+                ) {
+                    verificationId = vId
+                    onCodeSent()
+                }
+            })
+            .build()
+        PhoneAuthProvider.verifyPhoneNumber(options)
+    }
+
+    fun verifyAndUpdatePhone(code: String) {
+        if (verificationId.isEmpty()) return
+        val credential = PhoneAuthProvider.getCredential(verificationId, code)
+        updatePhoneNumber(credential)
+    }
+
+    private fun updatePhoneNumber(credential: PhoneAuthCredential) {
+        val user = auth.currentUser ?: return
+        viewModelScope.launch {
+            try {
+                user.updatePhoneNumber(credential).await()
+                user.reload().await()
+
+                firestore.collection("users").document(user.uid)
+                    .update("phone", user.phoneNumber)
+                    .await()
+
+                _updateMessage.emit("Cập nhật số điện thoại thành công! ✅")
+            } catch (e: Exception) {
+                _updateMessage.emit("Lỗi: ${e.message}")
+            }
+        }
+    }
 }
