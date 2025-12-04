@@ -16,16 +16,12 @@ import javax.inject.Inject
 class LeaderboardViewModel @Inject constructor(
     private val repository: LeaderboardRepository
 ) : ViewModel() {
-
-    // Danh sách Top Users (Tự động cập nhật từ Room)
     val topUsers: StateFlow<List<UserEntity>> = repository.getTopUsers()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-
-    // Danh sách Top Documents (Tự động cập nhật từ Room)
     val topDocuments: StateFlow<List<Document>> = repository.getTopDocuments()
         .stateIn(
             scope = viewModelScope,
@@ -34,10 +30,11 @@ class LeaderboardViewModel @Inject constructor(
         )
 
     init {
-        // Tự động tải dữ liệu mới nhất từ Firestore khi mở màn hình
-        refreshData()
+        viewModelScope.launch {
+            repository.syncMissingFields()
+            repository.refreshLeaderboard()
+        }
     }
-
     fun refreshData() {
         viewModelScope.launch {
             repository.refreshLeaderboard()

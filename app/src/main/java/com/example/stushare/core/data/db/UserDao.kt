@@ -12,15 +12,15 @@ interface UserDao {
     @Query("SELECT * FROM users")
     fun getAllUsers(): Flow<List<UserEntity>>
 
-    // Lấy Top 10 người dùng có điểm cao nhất để hiển thị Bảng xếp hạng
-    @Query("SELECT * FROM users ORDER BY contributionPoints DESC LIMIT 10")
+    // ĐÃ SỬA: Tăng LIMIT lên 20 để khớp với logic tải từ Firestore
+    @Query("SELECT * FROM users ORDER BY contributionPoints DESC LIMIT 20")
     fun getTopUsers(): Flow<List<UserEntity>>
 
-    // Thêm hoặc cập nhật thông tin người dùng
+    // Thêm hoặc cập nhật thông tin người dùng (REPLACE là đúng để cập nhật điểm mới)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUser(user: UserEntity)
 
-    // Lấy thông tin một người dùng cụ thể (để cộng điểm)
+    // Lấy thông tin một người dùng cụ thể
     @Query("SELECT * FROM users WHERE id = :userId")
     suspend fun getUserById(userId: String): UserEntity?
 }
