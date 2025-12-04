@@ -1,44 +1,28 @@
 package com.example.stushare.feature_search.ui.search
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource // 🟢 Import quan trọng
+import androidx.compose.ui.graphics.Color // Đã import Color để tránh lỗi build
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.stushare.R // 🟢 Import R
+import com.example.stushare.R
 import com.example.stushare.core.data.models.Document
 import com.example.stushare.features.feature_home.ui.components.DocumentCard
 import com.example.stushare.ui.theme.PrimaryGreen
@@ -47,14 +31,16 @@ import com.example.stushare.ui.theme.PrimaryGreen
 @Composable
 fun SearchResultScreen(
     onBackClick: () -> Unit,
-    onDocumentClick: (Long) -> Unit,
-    onRequestClick: () -> Unit, 
+    // 🟢 SỬA LỖI CRASH: Đổi từ Long -> String để chấp nhận mọi loại ID
+    onDocumentClick: (String) -> Unit,
+    onRequestClick: () -> Unit,
     viewModel: SearchResultViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val query = viewModel.query
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             SearchResultTopBar(
                 query = query,
@@ -65,6 +51,7 @@ fun SearchResultScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
         ) {
             when (val state = uiState) {
@@ -77,9 +64,10 @@ fun SearchResultScreen(
                     if (state.results.isEmpty()) {
                         EmptyResult(query = query, onRequestClick = onRequestClick)
                     } else {
-                        SearchResultList(
+                        // Hiển thị dạng lưới (2 cột)
+                        SearchResultGrid(
                             documents = state.results,
-                            onDocumentClick = onDocumentClick as (String) -> Unit
+                            onDocumentClick = onDocumentClick
                         )
                     }
                 }
@@ -99,63 +87,68 @@ fun SearchResultScreen(
     }
 }
 
-// --- Component TopBar ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchResultTopBar(query: String, onBackClick: () -> Unit) {
     TopAppBar(
         title = {
-            // 🟢 Đã sửa: Dùng stringResource có tham số
             Text(
                 text = stringResource(R.string.search_result_title, query),
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.content_desc_back) // 🟢 Đã sửa
+                    contentDescription = stringResource(R.string.content_desc_back),
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.White,
-            titleContentColor = Color.Black
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface
         )
     )
 }
 
-// --- Component Hiển thị Danh sách Kết quả ---
 @Composable
-private fun SearchResultList(
+private fun SearchResultGrid(
     documents: List<Document>,
-    onDocumentClick: (String) -> Unit
+    onDocumentClick: (String) -> Unit // 🟢 Nhận String thay vì Long
 ) {
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        item {
-            // 🟢 Đã sửa: Dùng stringResource đếm số lượng
-            Text(
-                text = stringResource(R.string.search_result_count, documents.size),
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
-        items(documents) { document ->
-            DocumentCard(
-                document = document,
-                onClick = { onDocumentClick(document.id) }
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = stringResource(R.string.search_result_count, documents.size),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp)
+        )
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(documents) { document ->
+                DocumentCard(
+                    document = document,
+                    // 🟢 SỬA LỖI CRASH: Không dùng .toLong() nữa, chỉ cần .toString()
+                    onClick = { onDocumentClick(document.id.toString()) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
 
-// --- Component Không có Kết quả ---
 @Composable
 private fun EmptyResult(
     query: String,
@@ -170,49 +163,46 @@ private fun EmptyResult(
     ) {
         Icon(
             imageVector = Icons.Default.SearchOff,
-            contentDescription = stringResource(R.string.content_desc_not_found), // 🟢 Đã sửa
-            tint = Color.Gray.copy(alpha = 0.5f),
+            contentDescription = stringResource(R.string.content_desc_not_found),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(80.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🟢 Đã sửa: Tiêu đề Empty
         Text(
             text = stringResource(R.string.search_empty_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 🟢 Đã sửa: Mô tả Empty kèm từ khóa
         Text(
             text = stringResource(R.string.search_empty_desc, query),
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Nút kêu gọi hành động (CTA)
         Button(
             onClick = onRequestClick,
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
             modifier = Modifier.height(50.dp)
         ) {
-            // 🟢 Đã sửa: Nút bấm
             Text(
                 text = stringResource(R.string.btn_request_help),
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                color = Color.White
             )
         }
     }
 }
 
-// --- Component Lỗi ---
 @Composable
 private fun ErrorMessage(message: String) {
     Box(
@@ -225,13 +215,13 @@ private fun ErrorMessage(message: String) {
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = stringResource(R.string.content_desc_error),
-                tint = Color.Red,
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(48.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.error_message, message),
-                color = Color.Red,
+                color = MaterialTheme.colorScheme.error,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
