@@ -33,10 +33,12 @@ fun ViewAllScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Dịch category sang Tiếng Việt để làm tiêu đề
+    // 🟢 CẬP NHẬT: Dịch đầy đủ tiêu đề sang Tiếng Việt
     val screenTitle = when(category) {
         "new_uploads" -> "Mới được tải lên"
-        "exam_prep" -> "Tài liệu ôn thi"
+        "exam_review", "exam_prep" -> "Tài liệu ôn thi"
+        "book" -> "Sách / Giáo trình" // Thêm dòng này
+        "lecture", "slide" -> "Bài giảng / Slide" // Thêm dòng này
         else -> "Xem tất cả"
     }
 
@@ -46,6 +48,7 @@ fun ViewAllScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background, // 🔴 FIX: Màu nền tổng thể
         // 1. Header: Clean & Simple (Đồng bộ với Detail Screen)
         topBar = {
             CenterAlignedTopAppBar(
@@ -70,14 +73,16 @@ fun ViewAllScreen(
                         Icon(
                             imageVector = Icons.Default.FilterList,
                             contentDescription = "Lọc",
-                            tint = Color.Gray
+                            // 🔴 FIX: Màu icon lọc theo theme
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
+                // 🔴 FIX: Màu TopBar theo theme
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -85,7 +90,8 @@ fun ViewAllScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White) // Nền trắng sạch sẽ
+                // 🔴 FIX: Dùng màu nền động thay vì Color.White
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
         ) {
             when (val state = uiState) {
@@ -98,7 +104,8 @@ fun ViewAllScreen(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             text = "Đã xảy ra lỗi: ${state.message}",
-                            color = Color.Red,
+                            // 🔴 FIX: Màu lỗi chuẩn theme
+                            color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -106,7 +113,11 @@ fun ViewAllScreen(
                 is ViewAllUiState.Success -> {
                     if (state.documents.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Không có tài liệu nào trong mục này", color = Color.Gray)
+                            // 🔴 FIX: Màu chữ thông báo trống
+                            Text(
+                                "Không có tài liệu nào trong mục này", 
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     } else {
                         // 2. Grid Layout: Tối ưu khoảng trắng (Whitespace)

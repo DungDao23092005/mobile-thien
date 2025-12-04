@@ -36,16 +36,16 @@ fun CreateRequestScreen(
     var description by remember { mutableStateOf("") }
 
     val focusManager = LocalFocusManager.current
-    // Logic đơn giản: Phải nhập Tiêu đề và Môn học mới cho Gửi
     val isFormValid = title.isNotBlank() && subject.isNotBlank()
 
     Scaffold(
-        // Thumb Zone: Nút Gửi nằm cố định ở đáy
+        containerColor = MaterialTheme.colorScheme.background, // 🔴 FIX: Màu nền tổng thể
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shadowElevation = 16.dp,
-                color = Color.White,
+                // 🔴 FIX: Màu nền thanh dưới cùng theo theme
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
                 Button(
@@ -56,13 +56,16 @@ fun CreateRequestScreen(
                     enabled = isFormValid,
                     modifier = Modifier
                         .padding(20.dp)
-                        .navigationBarsPadding() // Tránh thanh điều hướng ảo
+                        .navigationBarsPadding()
                         .height(54.dp)
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryGreen, // Nút cũng màu xanh
-                        disabledContainerColor = Color.LightGray
+                        containerColor = PrimaryGreen,
+                        contentColor = Color.White,
+                        // 🔴 FIX: Màu nút khi disable cho dễ nhìn trên nền tối
+                        disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                     )
                 ) {
                     Icon(Icons.Default.Check, contentDescription = null)
@@ -79,19 +82,18 @@ fun CreateRequestScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
-                .padding(paddingValues) // Padding cho bottomBar
+                // 🔴 FIX: Xóa background(Color.White) cứng, dùng mặc định của Scaffold
+                .padding(paddingValues)
         ) {
-            // 1. HEADER MÀU XANH (Đã mang trở lại!)
+            // 1. HEADER MÀU XANH (Giữ nguyên vì design yêu cầu)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
                     .background(PrimaryGreen)
-                    .statusBarsPadding() // Đẩy xuống dưới thanh trạng thái
+                    .statusBarsPadding()
                     .padding(vertical = 16.dp, horizontal = 8.dp)
             ) {
-                // Nút Back
                 IconButton(
                     onClick = onBackClick,
                     modifier = Modifier.align(Alignment.CenterStart)
@@ -103,7 +105,6 @@ fun CreateRequestScreen(
                     )
                 }
 
-                // Tiêu đề
                 Text(
                     text = "Tạo yêu cầu mới",
                     style = MaterialTheme.typography.titleMedium,
@@ -117,7 +118,7 @@ fun CreateRequestScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // Chiếm phần còn lại
+                    .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -125,7 +126,8 @@ fun CreateRequestScreen(
                 Text(
                     text = "Hãy mô tả chi tiết tài liệu bạn cần tìm để cộng đồng hỗ trợ nhanh nhất nhé!",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    // 🔴 FIX: Màu chữ phụ chuẩn theme
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 // Input: Tiêu đề
@@ -178,20 +180,31 @@ fun InputGroup(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color = Color.Black
+            // 🔴 FIX: Màu label tự động trắng/đen
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = Color.LightGray) },
+            placeholder = { 
+                Text(
+                    placeholder, 
+                    // 🔴 FIX: Màu placeholder nhạt đi theo theme
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                ) 
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
+            // 🔴 FIX: Hệ thống màu cho TextField
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PrimaryGreen,
-                unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color(0xFFFAFAFA)
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                focusedContainerColor = MaterialTheme.colorScheme.surface, // Nền khi focus
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), // Nền khi không focus
+                cursorColor = PrimaryGreen,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             ),
             singleLine = singleLine,
             minLines = minLines,

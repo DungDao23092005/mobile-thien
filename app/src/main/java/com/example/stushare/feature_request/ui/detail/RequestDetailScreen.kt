@@ -42,6 +42,7 @@ fun RequestDetailScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background, // 🔴 FIX: Màu nền tổng thể
         topBar = {
             TopAppBar(
                 title = { Text("Chi tiết & Thảo luận", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
@@ -50,9 +51,11 @@ fun RequestDetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                // 🔴 FIX: Màu TopBar theo theme
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
@@ -60,13 +63,14 @@ fun RequestDetailScreen(
             // Thanh nhập chat
             Surface(
                 shadowElevation = 8.dp,
-                color = Color.White
+                // 🔴 FIX: Nền thanh chat
+                color = MaterialTheme.colorScheme.surface
             ) {
                 Row(
                     modifier = Modifier
                         .padding(horizontal = 8.dp, vertical = 8.dp)
-                        .navigationBarsPadding() // Tránh bị che bởi thanh điều hướng hệ thống
-                        .imePadding(), // Đẩy lên khi bàn phím hiện
+                        .navigationBarsPadding()
+                        .imePadding(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedTextField(
@@ -75,11 +79,21 @@ fun RequestDetailScreen(
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
-                        placeholder = { Text("Nhập bình luận hoặc link tài liệu...") },
+                        placeholder = { 
+                            Text(
+                                "Nhập bình luận hoặc link tài liệu...", 
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            ) 
+                        },
                         shape = RoundedCornerShape(24.dp),
+                        // 🔴 FIX: Màu TextField nhập liệu
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryGreen,
-                            unfocusedBorderColor = Color.LightGray
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         maxLines = 3,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -99,7 +113,8 @@ fun RequestDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Gửi",
-                            tint = if (commentText.isNotBlank()) PrimaryGreen else Color.Gray
+                            // 🔴 FIX: Màu nút gửi
+                            tint = if (commentText.isNotBlank()) PrimaryGreen else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
                     }
                 }
@@ -109,7 +124,8 @@ fun RequestDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F7F5))
+                // 🔴 FIX: Xóa màu nền cứng Color(0xFFF5F7F5) -> Dùng nền theme
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
         ) {
             if (uiState.isLoadingRequest) {
@@ -128,12 +144,14 @@ fun RequestDetailScreen(
                         uiState.request?.let { request ->
                             RequestContentHeader(request)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Divider(color = Color.LightGray.copy(alpha = 0.5f))
+                            // 🔴 FIX: Màu Divider
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 "Bình luận (${uiState.comments.size})",
                                 style = MaterialTheme.typography.titleSmall,
-                                color = Color.Gray
+                                // 🔴 FIX: Màu tiêu đề section
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -147,7 +165,10 @@ fun RequestDetailScreen(
                                     .padding(32.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Chưa có bình luận nào. Hãy là người đầu tiên!", color = Color.Gray)
+                                Text(
+                                    "Chưa có bình luận nào. Hãy là người đầu tiên!", 
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     } else {
@@ -170,7 +191,8 @@ fun RequestDetailScreen(
 @Composable
 fun RequestContentHeader(request: DocumentRequest) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        // 🔴 FIX: Màu nền Card nội dung câu hỏi
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -190,22 +212,30 @@ fun RequestContentHeader(request: DocumentRequest) {
             Text(
                 text = request.title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                // 🔴 FIX: Màu chữ tiêu đề
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = request.description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray
+                // 🔴 FIX: Màu chữ mô tả
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                Icon(
+                    Icons.Default.Person, 
+                    contentDescription = null, 
+                    modifier = Modifier.size(16.dp), 
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Đăng bởi ${request.authorName}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -221,12 +251,12 @@ fun CommentItem(comment: CommentEntity, isCurrentUser: Boolean) {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = if (isCurrentUser) Alignment.End else Alignment.Start
     ) {
-        // Tên người dùng
+        // Tên người dùng (Chỉ hiện nếu không phải mình)
         if (!isCurrentUser) {
             Text(
                 text = comment.userName,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
             )
         }
@@ -237,13 +267,17 @@ fun CommentItem(comment: CommentEntity, isCurrentUser: Boolean) {
                 RoundedCornerShape(16.dp, 16.dp, 4.dp, 16.dp)
             else
                 RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp),
-            color = if (isCurrentUser) PrimaryGreen else Color.White,
+            // 🔴 FIX: Màu bong bóng chat:
+            // - Của mình: PrimaryGreen
+            // - Của người khác: surfaceVariant (Xám nhạt ở Light, Xám đậm ở Dark)
+            color = if (isCurrentUser) PrimaryGreen else MaterialTheme.colorScheme.surfaceVariant,
             shadowElevation = 1.dp
         ) {
             Text(
                 text = comment.content,
                 modifier = Modifier.padding(12.dp),
-                color = if (isCurrentUser) Color.White else Color.Black,
+                // 🔴 FIX: Màu chữ trong bong bóng
+                color = if (isCurrentUser) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -252,7 +286,7 @@ fun CommentItem(comment: CommentEntity, isCurrentUser: Boolean) {
         Text(
             text = timeString,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.LightGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             fontSize = 10.sp,
             modifier = Modifier.padding(top = 4.dp, start = 8.dp, end = 8.dp)
         )

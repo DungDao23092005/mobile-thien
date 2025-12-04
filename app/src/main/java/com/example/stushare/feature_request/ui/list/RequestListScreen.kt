@@ -35,13 +35,13 @@ import com.example.stushare.ui.theme.createShimmerBrush
 fun RequestListScreen(
     onBackClick: () -> Unit,
     onCreateRequestClick: () -> Unit,
-    // 🟢 MỚI: Callback để chuyển sang màn hình chi tiết
     onNavigateToDetail: (String) -> Unit,
     viewModel: RequestListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background, // 🔴 FIX: Màu nền tổng thể theo theme
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreateRequestClick,
@@ -56,7 +56,7 @@ fun RequestListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9F9F9))
+                // 🔴 FIX: Xóa màu nền cứng Color(0xFFF9F9F9) để dùng màu nền Scaffold ở trên
                 .padding(paddingValues)
         ) {
             // Header
@@ -105,7 +105,6 @@ fun RequestListScreen(
                         items(uiState.requests) { request ->
                             RequestCard(
                                 request = request,
-                                // 🟢 CẬP NHẬT: Gọi callback chuyển trang kèm ID
                                 onReplyClick = { onNavigateToDetail(request.id) }
                             )
                         }
@@ -124,7 +123,8 @@ fun RequestCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        // 🔴 FIX: Màu nền thẻ: Trắng (Light) / Xám tối (Dark)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -132,7 +132,7 @@ fun RequestCard(
         ) {
             if (request.subject.isNotBlank()) {
                 Surface(
-                    color = LightGreen,
+                    color = LightGreen, // Giữ nguyên màu xanh nhạt thương hiệu
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.padding(bottom = 12.dp)
                 ) {
@@ -150,7 +150,8 @@ fun RequestCard(
                 text = request.title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A1A)
+                // 🔴 FIX: Màu chữ tiêu đề tự động theo theme
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -159,7 +160,8 @@ fun RequestCard(
                 Text(
                     text = request.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF666666),
+                    // 🔴 FIX: Màu chữ mô tả (xám hơn tiêu đề)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 22.sp
@@ -167,7 +169,8 @@ fun RequestCard(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Divider(color = Color.LightGray.copy(alpha = 0.2f))
+            // 🔴 FIX: Divider màu chuẩn theme
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
@@ -179,14 +182,16 @@ fun RequestCard(
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        // 🔴 FIX: Icon xám theo theme
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = request.authorName.ifBlank { "Sinh viên ẩn danh" },
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.Gray
+                        // 🔴 FIX: Tên tác giả xám theo theme
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -195,9 +200,10 @@ fun RequestCard(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                     modifier = Modifier.height(32.dp),
                     shape = RoundedCornerShape(50),
+                    // 🔴 FIX: Màu nút "Trả lời"
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF0F0F0),
-                        contentColor = Color.Black
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant, // Xám nhạt (Light) / Xám đậm (Dark)
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     elevation = ButtonDefaults.buttonElevation(0.dp)
                 ) {
@@ -214,7 +220,6 @@ fun RequestCard(
     }
 }
 
-// ... (Giữ nguyên phần EmptyRequestState và Skeleton)
 @Composable
 fun EmptyRequestState(onCreateClick: () -> Unit) {
     Column(
@@ -235,13 +240,15 @@ fun EmptyRequestState(onCreateClick: () -> Unit) {
             text = "Chưa có câu hỏi nào",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            // 🔴 FIX: Màu chữ
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Hãy là người đầu tiên đặt câu hỏi để nhận được sự trợ giúp từ cộng đồng!",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
+            // 🔴 FIX: Màu chữ phụ
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -274,7 +281,8 @@ fun RequestCardSkeleton() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        // 🔴 FIX: Nền thẻ Skeleton theo theme
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -284,7 +292,8 @@ fun RequestCardSkeleton() {
             Spacer(modifier = Modifier.height(8.dp))
             Box(modifier = Modifier.fillMaxWidth(0.6f).height(20.dp).clip(RoundedCornerShape(4.dp)).background(brush))
             Spacer(modifier = Modifier.height(16.dp))
-            Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.LightGray.copy(alpha = 0.3f)))
+            // 🔴 FIX: Màu divider trong skeleton
+            Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Box(modifier = Modifier.width(100.dp).height(14.dp).clip(RoundedCornerShape(4.dp)).background(brush))

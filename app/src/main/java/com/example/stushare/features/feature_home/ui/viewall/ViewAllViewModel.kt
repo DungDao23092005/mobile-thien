@@ -40,29 +40,39 @@ class ViewAllViewModel @Inject constructor(
         Log.e("VIEWMODEL_TEST", "--- ĐANG CHẠY HÀM loadCategory VỚI: $category ---")
 
         viewModelScope.launch {
+            // 🟢 SỬA LỖI QUAN TRỌNG: Mapping đúng các từ khóa từ HomeScreen sang Database Type
             val databaseType = when (category) {
-                AppConstants.CATEGORY_NEW_UPLOADS -> AppConstants.TYPE_BOOK
-                AppConstants.CATEGORY_EXAM_PREP -> AppConstants.TYPE_EXAM_PREP
-                else -> ""
+                // Các loại tài liệu cụ thể (Phải khớp với trường 'type' trong Firebase/Database)
+                "exam_review", "exam_prep", AppConstants.CATEGORY_EXAM_PREP -> "exam_review"
+                "book", "Sách" -> "book"
+                "lecture", "slide", "Bài giảng" -> "lecture"
+                
+                // Mặc định: Nếu không khớp các case trên, giữ nguyên giá trị category để tìm
+                else -> category 
             }
 
             // 1. Cố gắng refresh dữ liệu từ API (Network)
             try {
                 repository.refreshDocumentsIfStale()
             } catch (e: Exception) {
-                // Nếu lỗi mạng thì chỉ log, không chặn luồng hiển thị offline
                 e.printStackTrace()
             }
 
-            // 2. Lấy dữ liệu từ Database (Flow) - Realtime update
-            repository.getDocumentsByType(databaseType)
-                .onStart { _uiState.value = ViewAllUiState.Loading } // Hiện loading khi bắt đầu
+            // 2. Lấy dữ liệu từ Database (Flow)
+            // Nếu là "new_uploads", tạm thời ta lấy type "book" hoặc tất cả (tùy logic app của bạn),
+            // ở đây mình để tạm là lấy 'book' nếu là new_uploads để tránh lỗi rỗng.
+            val flow = if (category == "new_uploads" || category == AppConstants.CATEGORY_NEW_UPLOADS) {
+                 repository.getDocumentsByType("book") 
+            } else {
+                repository.getDocumentsByType(databaseType)
+            }
+
+            flow
+                .onStart { _uiState.value = ViewAllUiState.Loading }
                 .catch { e ->
-                    // Xử lý lỗi khi đọc DB
                     _uiState.value = ViewAllUiState.Error(e.message ?: "Lỗi đọc dữ liệu nội bộ")
                 }
                 .collect { documentsFromDb ->
-                    // ✅ THÀNH CÔNG: Flow trả về List -> Cập nhật UI
                     _uiState.value = ViewAllUiState.Success(documentsFromDb)
                 }
         }
@@ -72,19 +82,13 @@ class ViewAllViewModel @Inject constructor(
      * Tải tài liệu theo TỪ KHÓA (Search)
      */
     fun search(query: String) {
-        Log.e("VIEWMODEL_TEST", "--- ĐANG CHẠY HÀM search VỚI: $query ---")
-
         viewModelScope.launch {
-            // 1. Refresh dữ liệu (Network)
             try {
                 repository.refreshDocumentsIfStale()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
 
-            // 2. Tìm kiếm trong Database (Flow)
-            // 🔴 CŨ (LỖI): val searchResults = repository.searchDocuments(query)
-            // 🟢 MỚI (ĐÚNG): Dùng .collect để lắng nghe Flow
             repository.searchDocuments(query)
                 .onStart { _uiState.value = ViewAllUiState.Loading }
                 .catch { e ->
@@ -95,7 +99,6 @@ class ViewAllViewModel @Inject constructor(
                     _uiState.value = ViewAllUiState.Error(errorMessage)
                 }
                 .collect { searchResults ->
-                    // ✅ THÀNH CÔNG: Cập nhật UI mỗi khi danh sách thay đổi
                     _uiState.value = ViewAllUiState.Success(searchResults)
                 }
         }

@@ -64,7 +64,6 @@ fun ProfileScreen(
     onDocumentClick: (String) -> Unit = {},
     onNavigateToUpload: () -> Unit,
     onNavigateToHome: () -> Unit,
-    // 🟢 THÊM: Callback vào Admin
     onNavigateToAdmin: () -> Unit
 ) {
     val context = LocalContext.current
@@ -112,7 +111,7 @@ fun ProfileScreen(
                     onDocumentClick = onDocumentClick,
                     onNavigateToUpload = onNavigateToUpload,
                     onNavigateToHome = onNavigateToHome,
-                    onNavigateToAdmin = onNavigateToAdmin // 🟢 Truyền xuống
+                    onNavigateToAdmin = onNavigateToAdmin
                 )
             }
         }
@@ -144,7 +143,7 @@ fun AuthenticatedProfileContent(
     onDocumentClick: (String) -> Unit,
     onNavigateToUpload: () -> Unit,
     onNavigateToHome: () -> Unit,
-    onNavigateToAdmin: () -> Unit // 🟢 Nhận callback
+    onNavigateToAdmin: () -> Unit
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabTitles = listOf(
@@ -158,23 +157,23 @@ fun AuthenticatedProfileContent(
         Column(modifier = Modifier.fillMaxSize()) {
             val userName = stringResource(R.string.profile_hello, userProfile.fullName)
 
-            // 🟢 UPDATE: Xử lý hiển thị môn học (đa ngôn ngữ cho 'Cơ khí')
             val displayMajor = when (userProfile.major) {
-                "Cơ khí" -> stringResource(R.string.subject_mechanical) // Dịch nếu là Cơ khí
+                "Cơ khí" -> stringResource(R.string.subject_mechanical)
                 "Chưa cập nhật", "" -> stringResource(R.string.profile_dept)
-                else -> userProfile.major // Các ngành khác hiển thị nguyên gốc
+                else -> userProfile.major
             }
 
             ProfileHeader(userName, displayMajor, userProfile.avatarUrl, onSettingsClick = onNavigateToSettings, onLeaderboardClick = onNavigateToLeaderboard, onAvatarClick = onAvatarClick)
 
-            // 🟢 NÚT ADMIN (Chỉ hiện nếu role là admin)
+            // 🟢 NÚT ADMIN: Đã chỉnh sửa Dark Mode
             if (userProfile.role == "admin") {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .clickable { onNavigateToAdmin() },
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)), // Đỏ nhạt
+                    // 🔴 FIX: Dùng errorContainer để tự động thích ứng Sáng/Tối
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
@@ -182,16 +181,16 @@ fun AuthenticatedProfileContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Icon(Icons.Default.Security, contentDescription = null, tint = Color.Red)
+                        // 🔴 FIX: Dùng onErrorContainer cho icon và text
+                        Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("TRUY CẬP TRANG QUẢN TRỊ", fontWeight = FontWeight.Bold, color = Color.Red)
+                        Text("TRUY CẬP TRANG QUẢN TRỊ", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
                     }
                 }
             }
 
-            // 🟢 UPDATE: Truyền memberRank xuống để xử lý hiển thị đa ngôn ngữ
             StatisticsRow(totalDocs, totalDownloads, memberRank)
-            Divider(color = Color.LightGray.copy(alpha = 0.3f))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant) // 🔴 FIX: Divider màu chuẩn
 
             TabRow(selectedTabIndex, containerColor = MaterialTheme.colorScheme.surface, contentColor = PrimaryGreen, indicator = { TabRowDefaults.SecondaryIndicator(Modifier.tabIndicatorOffset(it[selectedTabIndex]), color = PrimaryGreen) }) {
                 tabTitles.forEachIndexed { index, title ->
@@ -221,13 +220,13 @@ fun AuthenticatedProfileContent(
     }
 }
 
-// ... (Các component con ở dưới giữ nguyên như file cũ, không thay đổi)
 @Composable
 fun ProfileEmptyState(message: String, buttonText: String, icon: ImageVector, onClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(80.dp), tint = PrimaryGreen.copy(alpha = 0.3f))
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = message, style = MaterialTheme.typography.bodyLarge, color = Color.Gray, textAlign = TextAlign.Center)
+        // 🔴 FIX: Màu chữ xám chuẩn theme
+        Text(text = message, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(24.dp))
         Button(onClick = onClick, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen), shape = RoundedCornerShape(20.dp)) { Text(buttonText) }
     }
@@ -235,17 +234,15 @@ fun ProfileEmptyState(message: String, buttonText: String, icon: ImageVector, on
 
 @Composable
 fun StatisticsRow(totalDocs: Int, totalDownloads: Int, memberRank: String, modifier: Modifier = Modifier) {
-    // 🟢 UPDATE: Xử lý hiển thị Rank (nếu là 'Thành viên mới' thì dùng resource)
     val displayRank = if (memberRank == "Thành viên mới") stringResource(R.string.rank_new_member) else memberRank
 
-    Row(modifier = modifier.fillMaxWidth().background(Color.White).padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-        // 🟢 UPDATE: Dùng stringResource cho Label
+    // 🔴 FIX: Nền trắng -> Nền Surface
+    Row(modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
         StatItem(count = totalDocs.toString(), label = stringResource(R.string.profile_documents))
-        Divider(modifier = Modifier.height(40.dp).width(1.dp), color = Color.LightGray.copy(alpha = 0.5f))
-        // 🟢 UPDATE: Dùng stringResource cho Label
+        // 🔴 FIX: Màu Divider
+        Divider(modifier = Modifier.height(40.dp).width(1.dp), color = MaterialTheme.colorScheme.outlineVariant)
         StatItem(count = totalDownloads.toString(), label = stringResource(R.string.profile_downloads))
-        Divider(modifier = Modifier.height(40.dp).width(1.dp), color = Color.LightGray.copy(alpha = 0.5f))
-        // 🟢 UPDATE: Dùng stringResource cho Label và hiển thị Rank đã xử lý
+        Divider(modifier = Modifier.height(40.dp).width(1.dp), color = MaterialTheme.colorScheme.outlineVariant)
         StatItem(count = displayRank, label = stringResource(R.string.rank_title), isRank = true)
     }
 }
@@ -255,7 +252,8 @@ fun StatItem(count: String, label: String, isRank: Boolean = false) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = count, style = if (isRank) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = if (isRank) Color(0xFFFF9800) else PrimaryGreen)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        // 🔴 FIX: Màu chữ label
+        Text(text = label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -264,9 +262,9 @@ fun UnauthenticatedProfileContent(onLoginClick: () -> Unit, onRegisterClick: () 
     Column(modifier = Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Icon(Icons.Default.AccountCircle, null, Modifier.size(120.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
         Spacer(Modifier.height(24.dp))
-        Text("Bạn chưa đăng nhập", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text("Bạn chưa đăng nhập", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
         Spacer(Modifier.height(8.dp))
-        Text("Đăng nhập để quản lý tài liệu, xem lịch sử tải xuống và tham gia bảng xếp hạng.", style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+        Text("Đăng nhập để quản lý tài liệu, xem lịch sử tải xuống và tham gia bảng xếp hạng.", style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(32.dp))
         Button(onLoginClick, Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(25.dp), colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)) { Text("Đăng Nhập Ngay", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White) }
         Spacer(Modifier.height(16.dp))
@@ -287,7 +285,10 @@ fun ProfileHeader(userName: String, subText: String, avatarUrl: String?, onSetti
                 Text(userName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Text(subText, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 Spacer(Modifier.height(8.dp))
-                Surface(onClick = onLeaderboardClick, shape = RoundedCornerShape(8.dp), color = Color(0xFFFFF3E0), modifier = Modifier.wrapContentWidth()) { Text(stringResource(R.string.profile_view_leaderboard), color = Color(0xFFFF9800), fontWeight = FontWeight.Bold, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) }
+                // 🔴 FIX: Màu nền nút Bảng xếp hạng dịu hơn cho Dark Mode
+                Surface(onClick = onLeaderboardClick, shape = RoundedCornerShape(8.dp), color = Color(0xFFFF9800).copy(alpha = 0.15f), modifier = Modifier.wrapContentWidth()) { 
+                    Text(stringResource(R.string.profile_view_leaderboard), color = Color(0xFFFF9800), fontWeight = FontWeight.Bold, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) 
+                }
             }
             IconButton(onSettingsClick) { Icon(Icons.Default.Settings, "Settings", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) }
         }
@@ -333,11 +334,12 @@ fun ProfileSkeleton() {
                 }
             }
         }
-        Row(modifier = Modifier.fillMaxWidth().background(Color.White).padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        // 🔴 FIX: Màu nền Skeleton
+        Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             repeat(3) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Box(modifier = Modifier.width(30.dp).height(24.dp).clip(RoundedCornerShape(4.dp)).background(brush)); Spacer(Modifier.height(4.dp)); Box(modifier = Modifier.width(40.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(brush)) } }
         }
-        Divider(color = Color.LightGray.copy(alpha = 0.3f))
+        Divider(color = MaterialTheme.colorScheme.outlineVariant)
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) { repeat(3) { Box(modifier = Modifier.width(80.dp).height(20.dp).clip(RoundedCornerShape(4.dp)).background(brush)) } }
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { items(5) { Card(modifier = Modifier.fillMaxWidth().height(80.dp), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) { Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) { Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(brush)); Spacer(Modifier.width(12.dp)); Column(modifier = Modifier.weight(1f)) { Box(modifier = Modifier.fillMaxWidth(0.7f).height(16.dp).clip(RoundedCornerShape(4.dp)).background(brush)); Spacer(Modifier.height(8.dp)); Box(modifier = Modifier.fillMaxWidth(0.4f).height(12.dp).clip(RoundedCornerShape(4.dp)).background(brush)) } } } } }
+        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { items(5) { Card(modifier = Modifier.fillMaxWidth().height(80.dp), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(2.dp)) { Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) { Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(brush)); Spacer(Modifier.width(12.dp)); Column(modifier = Modifier.weight(1f)) { Box(modifier = Modifier.fillMaxWidth(0.7f).height(16.dp).clip(RoundedCornerShape(4.dp)).background(brush)); Spacer(Modifier.height(8.dp)); Box(modifier = Modifier.fillMaxWidth(0.4f).height(12.dp).clip(RoundedCornerShape(4.dp)).background(brush)) } } } } }
     }
 }
