@@ -61,13 +61,11 @@ class ProfileViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    // State chứa danh sách các tài khoản khác (đã từng đăng nhập)
     private val _otherAccounts = MutableStateFlow<List<UserEntity>>(emptyList())
     val otherAccounts = _otherAccounts.asStateFlow()
 
     private var verificationId: String = ""
 
-    // --- KHỐI INIT ---
     init {
         saveCurrentSessionToLocalDb()
         loadOtherAccounts()
@@ -88,6 +86,7 @@ class ProfileViewModel @Inject constructor(
             if (user != null) {
                 saveCurrentSessionToLocalDb()
                 
+                // Lắng nghe thay đổi từ Firestore Realtime
                 val userDocFlow = callbackFlow {
                     val docRef = firestore.collection("users").document(user.uid)
                     val listener = docRef.addSnapshotListener { snapshot, _ ->
@@ -110,15 +109,23 @@ class ProfileViewModel @Inject constructor(
                         else -> "Thành viên mới"
                     }
 
+                    // --- [FIX QUAN TRỌNG] ---
+                    // Ưu tiên lấy dữ liệu từ Firestore Snapshot để đảm bảo đồng bộ UI ngay lập tức
+                    val firestoreName = snapshot?.getString("fullName")
+                    val authName = user.displayName
+                    // Nếu Firestore có tên thì dùng, nếu không mới dùng Auth (fallback)
+                    val finalName = if (!firestoreName.isNullOrBlank()) firestoreName else (authName ?: user.email ?: "Sinh viên UTH")
+
                     val major = snapshot?.getString("major") ?: "Chưa cập nhật"
                     val bio = snapshot?.getString("bio") ?: ""
                     val role = snapshot?.getString("role") ?: "user"
+                    val avatar = snapshot?.getString("avatarUrl") ?: user.photoUrl?.toString()
 
                     val profile = UserProfile(
                         id = user.uid,
-                        fullName = user.displayName ?: user.email ?: "Sinh viên UTH",
+                        fullName = finalName, // Sử dụng tên đã xử lý ưu tiên Firestore
                         email = user.email ?: "",
-                        avatarUrl = user.photoUrl?.toString(),
+                        avatarUrl = avatar,
                         major = major,
                         bio = bio,
                         role = role
@@ -193,7 +200,6 @@ class ProfileViewModel @Inject constructor(
 
 
     // --- LOCAL DB HELPER ---
-
     private fun saveCurrentSessionToLocalDb() {
         val user = auth.currentUser
         if (user != null) {
@@ -244,14 +250,18 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    // Cập nhật Chuyên ngành và Bio vào Firestore
     fun updateExtendedInfo(major: String, bio: String) {
-        val uid = auth.currentUser?.uid ?: return
-        val data = hashMapOf("major" to major, "bio" to bio)
+        val user = auth.currentUser ?: return
+        // [CẬP NHẬT MỚI] Đồng bộ luôn email vào Firestore để đảm bảo dữ liệu đầy đủ
+        val data = hashMapOf(
+            "major" to major, 
+            "bio" to bio,
+            "email" to (user.email ?: "")
+        )
+        
         viewModelScope.launch {
             try {
-                // Dùng SetOptions.merge() để không ghi đè mất các trường khác
-                firestore.collection("users").document(uid).set(data, SetOptions.merge()).await()
+                firestore.collection("users").document(user.uid).set(data, SetOptions.merge()).await()
                 _updateMessage.emit("Đã lưu thông tin cá nhân! ✅")
             } catch (e: Exception) {
                 _updateMessage.emit("Lỗi: ${e.message}")
@@ -259,7 +269,6 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    // Cập nhật Avatar
     fun uploadAvatar(uri: Uri) {
         val user = auth.currentUser ?: return
         viewModelScope.launch {
@@ -269,13 +278,15 @@ class ProfileViewModel @Inject constructor(
                 storageRef.putFile(uri).await()
                 val downloadUrl = storageRef.downloadUrl.await()
                 
-                // Cập nhật Auth
                 val profileUpdates = UserProfileChangeRequest.Builder().setPhotoUri(downloadUrl).build()
                 user.updateProfile(profileUpdates).await()
                 
-                // Cập nhật Firestore
+                // Cập nhật URL ảnh và đồng bộ email nếu chưa có
                 firestore.collection("users").document(user.uid)
-                    .set(mapOf("avatarUrl" to downloadUrl.toString()), SetOptions.merge())
+                    .set(mapOf(
+                        "avatarUrl" to downloadUrl.toString(),
+                        "email" to (user.email ?: "")
+                    ), SetOptions.merge())
                     .await()
                 
                 user.reload().await()
@@ -283,7 +294,6 @@ class ProfileViewModel @Inject constructor(
                 
                 _updateMessage.emit("Đã cập nhật ảnh đại diện!")
             } catch (e: Exception) {
-                e.printStackTrace()
                 _updateMessage.emit("Lỗi tải ảnh: ${e.message}")
             } finally {
                 _isUploadingAvatar.value = false
@@ -291,7 +301,6 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    // ✅ ĐÃ SỬA: Cập nhật Tên hiển thị (Đồng bộ Auth + Firestore)
     fun updateUserName(newName: String) {
         val user = auth.currentUser ?: return
         if (newName.isBlank()) {
@@ -299,37 +308,36 @@ class ProfileViewModel @Inject constructor(
             return
         }
 
-        // 1. Cập nhật trên Firebase Auth (để hiện ngay ở local)
-        val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(newName).build()
-        
-        user.updateProfile(profileUpdates).addOnCompleteListener { task ->
-            viewModelScope.launch {
-                if (task.isSuccessful) {
-                    // 2. Cập nhật "fullName" vào Firestore (để người khác thấy tên mới)
-                    try {
-                        val updateMap = mapOf("fullName" to newName)
-                        firestore.collection("users").document(user.uid)
-                            .set(updateMap, SetOptions.merge())
-                            .await()
-                        
-                        _updateMessage.emit("Cập nhật tên thành công!")
-                        
-                        // Reload lại để đồng bộ
-                        user.reload().await()
-                        saveCurrentSessionToLocalDb()
-                        
-                    } catch (e: Exception) {
-                        _updateMessage.emit("Lỗi đồng bộ dữ liệu: ${e.message}")
-                    }
-                } else {
-                    _updateMessage.emit("Lỗi cập nhật profile: ${task.exception?.message}")
-                }
+        viewModelScope.launch {
+            try {
+                // 1. Cập nhật Auth (có thể chậm)
+                val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(newName).build()
+                user.updateProfile(profileUpdates).await()
+
+                // 2. Cập nhật Firestore (quan trọng, vì UI lắng nghe cái này)
+                // [CẬP NHẬT MỚI] Đồng bộ luôn email vào đây
+                val updateMap = mapOf(
+                    "fullName" to newName,
+                    "email" to (user.email ?: "")
+                )
+                
+                firestore.collection("users").document(user.uid)
+                    .set(updateMap, SetOptions.merge())
+                    .await()
+
+                _updateMessage.emit("Cập nhật tên thành công!")
+                
+                // 3. Đồng bộ lại session local
+                user.reload().await()
+                saveCurrentSessionToLocalDb()
+
+            } catch (e: Exception) {
+                _updateMessage.emit("Lỗi cập nhật: ${e.message}")
             }
         }
     }
 
-    // --- CÁC HÀM KHÁC (Change Pass, Email, OTP...) ---
-
+    // --- CÁC HÀM KHÁC (Password, Email, OTP...) ---
     fun changePassword(currentPass: String, newPass: String) {
         val user = auth.currentUser ?: return
         if (user.email == null) return
@@ -357,10 +365,9 @@ class ProfileViewModel @Inject constructor(
                 user.updateEmail(newEmail).addOnCompleteListener { updateTask ->
                     viewModelScope.launch {
                         if (updateTask.isSuccessful) {
-                            // Cập nhật cả trong Firestore nếu cần
+                            // Cập nhật Email mới vào Firestore
                             firestore.collection("users").document(user.uid)
                                 .set(mapOf("email" to newEmail), SetOptions.merge())
-                            
                             _updateMessage.emit("Đổi email thành công!")
                             saveCurrentSessionToLocalDb()
                         }
@@ -388,12 +395,7 @@ class ProfileViewModel @Inject constructor(
         auth.signOut()
     }
 
-    fun sendOtp(
-        phoneNumber: String,
-        activity: Activity,
-        onCodeSent: () -> Unit,
-        onError: (String) -> Unit
-    ) {
+    fun sendOtp(phoneNumber: String, activity: Activity, onCodeSent: () -> Unit, onError: (String) -> Unit) {
         val options = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(phoneNumber)
             .setTimeout(60L, TimeUnit.SECONDS)
@@ -402,15 +404,10 @@ class ProfileViewModel @Inject constructor(
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                     updatePhoneNumber(credential)
                 }
-
                 override fun onVerificationFailed(e: FirebaseException) {
                     onError(e.message ?: "Gửi OTP thất bại")
                 }
-
-                override fun onCodeSent(
-                    vId: String,
-                    token: PhoneAuthProvider.ForceResendingToken
-                ) {
+                override fun onCodeSent(vId: String, token: PhoneAuthProvider.ForceResendingToken) {
                     verificationId = vId
                     onCodeSent()
                 }
@@ -431,11 +428,9 @@ class ProfileViewModel @Inject constructor(
             try {
                 user.updatePhoneNumber(credential).await()
                 user.reload().await()
-
                 firestore.collection("users").document(user.uid)
                     .update("phone", user.phoneNumber)
                     .await()
-
                 _updateMessage.emit("Cập nhật số điện thoại thành công! ✅")
             } catch (e: Exception) {
                 _updateMessage.emit("Lỗi: ${e.message}")

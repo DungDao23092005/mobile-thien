@@ -61,27 +61,29 @@ fun PersonalInfoScreen(
     var major by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
 
-    // Các chuỗi resource cần dùng trong logic
+    // [QUAN TRỌNG] Biến cờ để đảm bảo dữ liệu chỉ load 1 lần khi vào màn hình
+    var isInitialized by remember { mutableStateOf(false) }
+
     val errNameEmpty = stringResource(R.string.err_name_empty)
 
-    // Cập nhật dữ liệu vào TextField khi load xong profile
+    // Cập nhật dữ liệu vào TextField khi load xong profile (CHỈ LẦN ĐẦU)
     LaunchedEffect(uiState) {
-        if (uiState is ProfileUiState.Authenticated) {
+        if (uiState is ProfileUiState.Authenticated && !isInitialized) {
             val profile = (uiState as ProfileUiState.Authenticated).profile
             name = profile.fullName
             major = profile.major
             bio = profile.bio
+            isInitialized = true // Đánh dấu đã load xong, khóa lại để không bị nhảy chữ
         }
     }
 
-    // Lắng nghe thông báo từ ViewModel (Toast)
+    // Lắng nghe thông báo Toast
     LaunchedEffect(Unit) {
         viewModel.updateMessage.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Launcher chọn ảnh
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -149,11 +151,10 @@ fun PersonalInfoScreen(
                         onSaveClick = {
                             if (name.isNotBlank()) {
                                 focusManager.clearFocus()
-                                // Chỉ gọi update tên nếu tên thực sự thay đổi
+                                // Logic update
                                 if (name != state.profile.fullName) {
                                     viewModel.updateUserName(name)
                                 }
-                                // Luôn cập nhật thông tin bổ sung
                                 viewModel.updateExtendedInfo(major, bio)
                             } else {
                                 Toast.makeText(context, errNameEmpty, Toast.LENGTH_SHORT).show()
@@ -180,7 +181,6 @@ fun PersonalInfoContent(
     onAvatarClick: () -> Unit,
     onSaveClick: () -> Unit
 ) {
-    // Danh sách ngành học lấy từ resources
     val majors = listOf(
         stringResource(R.string.major_it),
         stringResource(R.string.major_transport_eco),
@@ -290,7 +290,7 @@ fun PersonalInfoContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 4. CHUYÊN NGÀNH (DROPDOWN)
+                // 4. CHUYÊN NGÀNH
                 ExposedDropdownMenuBox(
                     expanded = expandedMajor,
                     onExpandedChange = { expandedMajor = !expandedMajor }
@@ -328,7 +328,7 @@ fun PersonalInfoContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 5. BIO / GIỚI THIỆU
+                // 5. BIO
                 OutlinedTextField(
                     value = bioState,
                     onValueChange = onBioChange,
