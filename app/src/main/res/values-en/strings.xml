@@ -173,9 +173,70 @@
     <string name="upload_error_msg">Please select a file and enter a title!</string>
     <string name="upload_btn">Upload Now</string>
     <string name="upload_btn_loading">Uploading…</string>
+    
     <string name="sugg_law">General Law</string>
     <string name="sugg_se">Software Engineering</string>
     <string name="sugg_it">IT Faculty</string>
     <string name="sugg_exam">#exam</string>
-    <string name="section_exam_review">Tài liệu ôn thi</string>
+    
+    <string name="search_title">Search</string>
+    <string name="search_hint">Enter document name, subject...</string>
+    <string name="search_recent">Recent Searches</string>
+    <string name="clear_all">Clear All</string>
+    <string name="search_suggestion">Suggestions for you</string>
+    <string name="back">Back</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="section_exam_review">Exam Review</string>
+    <string name="community_help">Community Help</string>
+    <string name="exam_documents">Exam Prep</string>
+    <string name="books_curriculum">Books/Curricula</string>
+    <string name="lectures_slides">Lectures/Slides</string>
+    
+    <string name="view_all">View All</string>
+
+    <string name="search_placeholder">Search documents, subjects...</string>
+    <string name="subjects">Subjects</string>
+    <string name="subject_mechanical">Mechanical Eng</string>
+
+    <string name="upload_document_title">Upload Document</string>
+
+    <string name="notifications_title">Notifications</string>
+
+    <string name="profile_documents">Documents</string>
+    <string name="profile_downloads">Downloads</string>
+    <string name="rank_new_member">New Member</string>
+    <string name="rank_title">Rank</string>
+
+    <string name="create_new_request">New Request</string>
+    <string name="post_request">Post</string>
+    
+    <string name="desc_leaderboard">Leaderboard</string>
+    <string name="desc_community">Community</string>
+    <string name="desc_notification">Notifications</string>
+    <string name="desc_upload">Upload</string>
+
+    <string name="search_result_title">Results for \"%1$s\"</string>
+    <string name="search_result_count">Found %1$d documents</string>
+    <string name="search_empty_title">Sorry, no documents found</string>
+    <string name="search_empty_desc">We couldn\'t find any results for \"%1$s\".</string>
+    <string name="btn_request_help">Ask the community for help!</string>
+    <string name="error_message">An error occurred: %1$s</string>
+    <string name="content_desc_back">Back</string>
+    <string name="content_desc_not_found">Not found</string>
+    <string name="content_desc_error">Error</string>
+
+    <string name="noti_screen_title">Notifications</string>
+    <string name="noti_unread_count">%1$d unread messages</string>
+    <string name="noti_mark_all_read">Read all</string>
+    <string name="noti_empty">No notifications yet</string>
+    <string name="content_desc_delete">Delete</string>
+
+    <string name="time_just_now">Just now</string>
+    <string name="time_minutes_ago">%1$d mins ago</string>
+    <string name="time_hours_ago">%1$d hours ago</string>
+    <string name="time_days_ago">%1$d days ago</string>
 </resources>

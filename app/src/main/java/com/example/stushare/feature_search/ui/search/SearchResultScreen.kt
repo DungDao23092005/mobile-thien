@@ -31,12 +31,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource // 🟢 Import quan trọng
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.stushare.R // 🟢 Import R
 import com.example.stushare.core.data.models.Document
 import com.example.stushare.features.feature_home.ui.components.DocumentCard
 import com.example.stushare.ui.theme.PrimaryGreen
@@ -46,7 +48,7 @@ import com.example.stushare.ui.theme.PrimaryGreen
 fun SearchResultScreen(
     onBackClick: () -> Unit,
     onDocumentClick: (Long) -> Unit,
-    onRequestClick: () -> Unit, // Giữ lại callback này cho Empty State
+    onRequestClick: () -> Unit, 
     viewModel: SearchResultViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -59,7 +61,6 @@ fun SearchResultScreen(
                 onBackClick = onBackClick
             )
         }
-        // ❌ ĐÃ XÓA FloatingActionButton ở đây theo yêu cầu
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -74,7 +75,6 @@ fun SearchResultScreen(
                 }
                 is SearchUiState.Success -> {
                     if (state.results.isEmpty()) {
-                        // Gọi Empty State khi danh sách rỗng
                         EmptyResult(query = query, onRequestClick = onRequestClick)
                     } else {
                         SearchResultList(
@@ -84,7 +84,6 @@ fun SearchResultScreen(
                     }
                 }
                 is SearchUiState.Empty -> {
-                    // Gọi Empty State khi search trả về kết quả Empty
                     EmptyResult(query = query, onRequestClick = onRequestClick)
                 }
                 is SearchUiState.Error -> {
@@ -106,8 +105,9 @@ fun SearchResultScreen(
 private fun SearchResultTopBar(query: String, onBackClick: () -> Unit) {
     TopAppBar(
         title = {
+            // 🟢 Đã sửa: Dùng stringResource có tham số
             Text(
-                text = "Kết quả cho \"$query\"",
+                text = stringResource(R.string.search_result_title, query),
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
@@ -116,7 +116,7 @@ private fun SearchResultTopBar(query: String, onBackClick: () -> Unit) {
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Quay lại"
+                    contentDescription = stringResource(R.string.content_desc_back) // 🟢 Đã sửa
                 )
             }
         },
@@ -134,14 +134,14 @@ private fun SearchResultList(
     onDocumentClick: (String) -> Unit
 ) {
     LazyColumn(
-        // 🛠 Đã chỉnh lại padding bottom về 16.dp (vì không còn FAB che nữa)
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         item {
+            // 🟢 Đã sửa: Dùng stringResource đếm số lượng
             Text(
-                text = "Tìm thấy ${documents.size} tài liệu",
+                text = stringResource(R.string.search_result_count, documents.size),
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -155,7 +155,7 @@ private fun SearchResultList(
     }
 }
 
-// --- Component Không có Kết quả (Đã tích hợp nút Action) ---
+// --- Component Không có Kết quả ---
 @Composable
 private fun EmptyResult(
     query: String,
@@ -170,15 +170,16 @@ private fun EmptyResult(
     ) {
         Icon(
             imageVector = Icons.Default.SearchOff,
-            contentDescription = "Không tìm thấy",
+            contentDescription = stringResource(R.string.content_desc_not_found), // 🟢 Đã sửa
             tint = Color.Gray.copy(alpha = 0.5f),
             modifier = Modifier.size(80.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // 🟢 Đã sửa: Tiêu đề Empty
         Text(
-            text = "Rất tiếc, không tìm thấy tài liệu nào",
+            text = stringResource(R.string.search_empty_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
@@ -186,8 +187,9 @@ private fun EmptyResult(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // 🟢 Đã sửa: Mô tả Empty kèm từ khóa
         Text(
-            text = "Chúng tôi không tìm thấy kết quả cho từ khóa \"$query\".",
+            text = stringResource(R.string.search_empty_desc, query),
             color = Color.Gray,
             textAlign = TextAlign.Center
         )
@@ -200,8 +202,9 @@ private fun EmptyResult(
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
             modifier = Modifier.height(50.dp)
         ) {
+            // 🟢 Đã sửa: Nút bấm
             Text(
-                text = "Nhờ cộng đồng tìm giúp ngay!",
+                text = stringResource(R.string.btn_request_help),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -221,13 +224,13 @@ private fun ErrorMessage(message: String) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = Icons.Default.Info,
-                contentDescription = "Lỗi",
+                contentDescription = stringResource(R.string.content_desc_error),
                 tint = Color.Red,
                 modifier = Modifier.size(48.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Đã xảy ra lỗi: $message",
+                text = stringResource(R.string.error_message, message),
                 color = Color.Red,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center

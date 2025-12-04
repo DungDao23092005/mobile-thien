@@ -37,7 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.stushare.R
 import com.example.stushare.core.data.models.Document
-import com.example.stushare.core.data.models.DocumentRequest // 🟢 Import
+import com.example.stushare.core.data.models.DocumentRequest
 import com.example.stushare.features.feature_home.ui.components.DocumentCard
 import com.example.stushare.ui.theme.LightGreen
 import com.example.stushare.ui.theme.PrimaryGreen
@@ -80,7 +80,8 @@ fun HomeScreen(
                 containerColor = PrimaryGreen,
                 contentColor = Color.White
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Tạo yêu cầu mới")
+                // 🔴 Đã sửa: Dùng stringResource
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.create_new_request))
             }
         }
     ) { paddingValues ->
@@ -149,14 +150,14 @@ private fun HomeContent(
         // 2. Section: Mới được tải lên
         item {
             DocumentSection(
-                title = stringResource(R.string.section_new_uploads),
+                title = stringResource(R.string.section_new_uploads), // Đảm bảo đã có trong strings.xml
                 documents = uiState.newDocuments,
                 onViewAllClick = { onViewAllClick("new_uploads") },
                 onDocumentClick = onDocumentClick
             )
         }
 
-        // 🟢 3. Section: CỘNG ĐỒNG CẦN GIÚP (MỚI)
+        // 3. Section: CỘNG ĐỒNG CẦN GIÚP
         item {
             if (uiState.requestDocuments.isNotEmpty()) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -172,19 +173,21 @@ private fun HomeContent(
                             Icon(
                                 imageVector = Icons.Default.LiveHelp,
                                 contentDescription = null,
-                                tint = Color(0xFFFF9800), // Màu cam
+                                tint = Color(0xFFFF9800),
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
+                            // 🔴 Đã sửa: Dùng stringResource
                             Text(
-                                text = "Cộng đồng cần giúp",
+                                text = stringResource(R.string.community_help),
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = Color.Black
                             )
                         }
 
+                        // 🔴 Đã sửa: Dùng stringResource
                         Text(
-                            text = "Xem tất cả",
+                            text = stringResource(R.string.view_all),
                             style = MaterialTheme.typography.bodySmall,
                             color = PrimaryGreen,
                             modifier = Modifier.clickable { onRequestListClick() }
@@ -199,16 +202,16 @@ private fun HomeContent(
                         items(uiState.requestDocuments) { req ->
                             MiniRequestCard(
                                 request = req,
-                                onClick = { onRequestListClick() } // Bấm vào thì mở danh sách
+                                onClick = { onRequestListClick() }
                             )
                         }
 
-                        // Thẻ "Thêm yêu cầu" ở cuối danh sách
+                        // Thẻ "Đăng bài" ở cuối danh sách
                         item {
                             Button(
                                 onClick = onRequestListClick,
                                 shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE0F2F1)), // Màu xanh nhạt
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE0F2F1)),
                                 modifier = Modifier.size(width = 100.dp, height = 130.dp),
                                 contentPadding = PaddingValues(0.dp)
                             ) {
@@ -219,7 +222,8 @@ private fun HomeContent(
                                         tint = PrimaryGreen
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text("Đăng bài", color = PrimaryGreen, fontSize = 12.sp)
+                                    // 🔴 Đã sửa: Dùng stringResource
+                                    Text(stringResource(R.string.post_request), color = PrimaryGreen, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -231,7 +235,7 @@ private fun HomeContent(
         // 4. Section: Tài liệu ôn thi
         item {
             DocumentSection(
-                title = stringResource(R.string.section_exam_review),
+                title = stringResource(R.string.section_exam_review), // Đảm bảo đã có trong strings.xml
                 documents = uiState.examDocuments,
                 onViewAllClick = { onViewAllClick("exam_review") },
                 onDocumentClick = onDocumentClick
@@ -241,7 +245,8 @@ private fun HomeContent(
         // 5. Section: Sách / Giáo trình
         item {
             DocumentSection(
-                title = "Sách / Giáo trình",
+                // 🔴 Đã sửa: Dùng stringResource
+                title = stringResource(R.string.books_curriculum),
                 documents = uiState.bookDocuments,
                 onViewAllClick = { onViewAllClick("book") },
                 onDocumentClick = onDocumentClick
@@ -251,7 +256,8 @@ private fun HomeContent(
         // 6. Section: Bài giảng / Slide
         item {
             DocumentSection(
-                title = "Bài giảng / Slide",
+                // 🔴 Đã sửa: Dùng stringResource
+                title = stringResource(R.string.lectures_slides),
                 documents = uiState.lectureDocuments,
                 onViewAllClick = { onViewAllClick("lecture") },
                 onDocumentClick = onDocumentClick
@@ -260,7 +266,7 @@ private fun HomeContent(
     }
 }
 
-// 🟢 COMPONENT THẺ YÊU CẦU MINI
+// COMPONENT THẺ YÊU CẦU MINI
 @Composable
 fun MiniRequestCard(
     request: DocumentRequest,
@@ -272,7 +278,7 @@ fun MiniRequestCard(
             .height(130.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F9F5)), // Xanh siêu nhạt
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F9F5)),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(
@@ -288,7 +294,7 @@ fun MiniRequestCard(
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Text(
-                        text = request.subject,
+                        text = request.subject, // Lưu ý: Tên môn học lấy từ DB, cần xử lý riêng nếu muốn dịch
                         color = PrimaryGreen,
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
@@ -351,6 +357,7 @@ private fun DocumentSection(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = Color.Black
                 )
+                // 🔴 Đã sửa: Dùng stringResource
                 Text(
                     text = stringResource(R.string.view_all),
                     style = MaterialTheme.typography.bodySmall,
@@ -374,7 +381,6 @@ private fun DocumentSection(
     }
 }
 
-// ... (Phần HomeHeaderSection giữ nguyên)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeHeaderSection(
@@ -407,7 +413,7 @@ fun HomeHeaderSection(
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.home_greeting),
+                    text = stringResource(R.string.home_greeting), // Đảm bảo đã có trong strings.xml
                     color = Color.White.copy(alpha = 0.9f),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -421,18 +427,21 @@ fun HomeHeaderSection(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onLeaderboardClick) {
-                    Icon(Icons.Default.EmojiEvents, contentDescription = "Leaderboard", tint = Color.White)
+                    // 🔴 Đã sửa: Dùng stringResource cho contentDescription
+                    Icon(Icons.Default.EmojiEvents, contentDescription = stringResource(R.string.desc_leaderboard), tint = Color.White)
                 }
                 IconButton(onClick = onRequestListClick) {
+                    // 🔴 Đã sửa: Dùng stringResource
                     Icon(
                         imageVector = Icons.Default.LiveHelp,
-                        contentDescription = "Cộng đồng",
+                        contentDescription = stringResource(R.string.desc_community),
                         tint = Color.White
                     )
                 }
                 Box {
                     IconButton(onClick = onNotificationClick) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notification", tint = Color.White)
+                        // 🔴 Đã sửa: Dùng stringResource
+                        Icon(Icons.Default.Notifications, contentDescription = stringResource(R.string.desc_notification), tint = Color.White)
                     }
                     if (unreadCount > 0) {
                         Badge(
@@ -446,7 +455,8 @@ fun HomeHeaderSection(
                     }
                 }
                 IconButton(onClick = onUploadClick) {
-                    Icon(Icons.Default.CloudUpload, contentDescription = "Upload", tint = Color.White)
+                    // 🔴 Đã sửa: Dùng stringResource
+                    Icon(Icons.Default.CloudUpload, contentDescription = stringResource(R.string.desc_upload), tint = Color.White)
                 }
             }
         }
@@ -465,7 +475,7 @@ fun HomeHeaderSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.home_search_hint),
+                    text = stringResource(R.string.home_search_hint), // Đảm bảo đã có trong strings.xml
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f)

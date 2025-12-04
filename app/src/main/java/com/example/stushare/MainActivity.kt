@@ -41,15 +41,8 @@ class MainActivity : AppCompatActivity() {
         
         // CẤU HÌNH TRÀN VIỀN
         enableEdgeToEdge(
-            // statusBarStyle: .dark(...) nghĩa là icon màu TRẮNG (dành cho nền tối)
-            // Nếu nền app của bạn màu trắng, hãy đổi thành .light(...) để icon màu ĐEN
-            statusBarStyle = SystemBarStyle.dark(
-                Color.TRANSPARENT
-            ),
-            navigationBarStyle = SystemBarStyle.light(
-                Color.TRANSPARENT,
-                Color.TRANSPARENT
-            )
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
 
         setContent {
@@ -61,14 +54,25 @@ class MainActivity : AppCompatActivity() {
             val fontScale by settingsRepository.fontScale
                 .collectAsState(initial = 1.0f)
 
-            val languageCode by settingsRepository.languageCode
-                .collectAsState(initial = "vi")
+            // 🔴 SỬA LỖI NHẤP NHÁY:
+            // 1. Đặt initial = null để không bị nhận sai giá trị mặc định khi vừa khởi động lại
+            val languageCodeState by settingsRepository.languageCode
+                .collectAsState(initial = null) 
 
-            LaunchedEffect(languageCode) {
-                val currentLocales = AppCompatDelegate.getApplicationLocales()
-                val newLocale = LocaleListCompat.forLanguageTags(languageCode)
-                if (currentLocales.toLanguageTags() != languageCode) {
-                    AppCompatDelegate.setApplicationLocales(newLocale)
+            // 2. Logic cập nhật ngôn ngữ an toàn hơn
+            LaunchedEffect(languageCodeState) {
+                languageCodeState?.let { code ->
+                    if (code.isNotEmpty()) {
+                        val currentLocales = AppCompatDelegate.getApplicationLocales()
+                        val currentTag = currentLocales.toLanguageTags() // Ví dụ: "en-US" hoặc "vi-VN"
+
+                        // Chỉ set lại nếu ngôn ngữ thực sự KHÁC với cái đang hiển thị
+                        // Dùng startsWith để "en" khớp với "en-US" -> Tránh lặp vô hạn
+                        if (!currentTag.startsWith(code, ignoreCase = true)) {
+                            val newLocale = LocaleListCompat.forLanguageTags(code)
+                            AppCompatDelegate.setApplicationLocales(newLocale)
+                        }
+                    }
                 }
             }
 
@@ -115,14 +119,11 @@ fun MainAppScreen(windowSizeClass: WindowSizeClass) {
                 }
             }
         },
-        // Container màu mặc định
         containerColor = MaterialTheme.colorScheme.background 
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                // QUAN TRỌNG: Chỉ padding bottom để tránh BottomBar
-                // KHÔNG padding top để nội dung tràn lên Status Bar
                 .padding(bottom = innerPadding.calculateBottomPadding()) 
         ) {
             AppNavigation(

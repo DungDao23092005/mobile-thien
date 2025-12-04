@@ -133,41 +133,27 @@
     <string name="logout">Đăng xuất</string>
     <string name="logout_success">Đăng xuất thành công</string>
 
-    <!-- ==== PROFILE SCREEN STRINGS (BẮT BUỘC) ==== -->
-
     <string name="profile_tab_posted">Đã đăng</string>
     <string name="profile_tab_saved">Đã lưu</string>
     <string name="profile_tab_downloaded">Đã tải xuống</string>
-
     <string name="profile_guest">Khách</string>
-
-    <!-- "Xin chào, %1$s" -->
     <string name="profile_hello">Xin chào, %1$s</string>
-
     <string name="profile_dept">Khoa/Bộ môn của bạn</string>
-
     <string name="profile_empty_list">Danh sách trống</string>
-
     <string name="profile_view_leaderboard">Xem bảng xếp hạng</string>
-
     <string name="profile_delete_success">Xóa thành công</string>
     <string name="feature_not_supported">Tính năng chưa hỗ trợ</string>
-
     <string name="delete">Xóa</string>
-
 
     <string name="report_header">Báo cáo vi phạm</string>
     <string name="report_question">Vấn đề bạn gặp phải là gì?</string>
-
     <string name="report_reason_spam">Nội dung rác / Spam</string>
     <string name="report_reason_fake">Thông tin sai lệch</string>
     <string name="report_reason_copyright">Vi phạm bản quyền tài liệu</string>
     <string name="report_reason_harassment">Ngôn từ đả kích / Xúc phạm</string>
     <string name="report_reason_other">Lý do khác</string>
-
     <string name="report_desc_label">Mô tả chi tiết (Tùy chọn)</string>
     <string name="report_desc_hint">Nhập thêm thông tin để chúng tôi hỗ trợ tốt hơn…</string>
-
     <string name="report_btn_submit">Gửi báo cáo</string>
     <string name="report_success">Đã gửi báo cáo. Cảm ơn bạn!</string>
     <string name="report_error_select">Vui lòng chọn lý do</string>
@@ -181,19 +167,68 @@
     <string name="upload_error_msg">Vui lòng chọn file và nhập tiêu đề!</string>
     <string name="upload_btn">Tải lên ngay</string>
     <string name="upload_btn_loading">Đang tải…</string>
-    <string name="search_title" translatable="false">Tìm kiếm</string>
-    <string name="search_hint" translatable="false">Nhập tên tài liệu, môn học...</string>
-    <string name="search_recent" translatable="false">Tìm kiếm gần đây</string>
-    <string name="clear_all" translatable="false">Xóa tất cả</string>
-    <string name="search_suggestion" translatable="false">Gợi ý cho bạn</string>
-    <string name="back" translatable="false">Quay về</string>
+    <string name="upload_document_title">Tải tài liệu lên</string>
+
+    <string name="search_title">Tìm kiếm</string>
+    <string name="search_hint">Nhập tên tài liệu, môn học...</string>
+    <string name="search_recent">Tìm kiếm gần đây</string>
+    <string name="clear_all">Xóa tất cả</string>
+    <string name="search_suggestion">Gợi ý cho bạn</string>
+    <string name="back">Quay về</string>
     <string name="sugg_law">Pháp luật đại cương</string>
     <string name="sugg_se">Công nghệ phần mềm</string>
     <string name="sugg_it">Khoa CNTT</string>
     <string name="sugg_exam">#dethi</string>
-    <string name="nav_home" translatable="false">Trang chủ</string>
-    <string name="nav_search" translatable="false">Tìm kiếm</string>
-    <string name="nav_profile" translatable="false">Cá nhân</string>
-    <string name="view_all" translatable="false">Xem tất cả</string>
+    
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_search">Tìm kiếm</string>
+    <string name="nav_profile">Cá nhân</string>
+    <string name="view_all">Xem tất cả</string>
+    
     <string name="section_exam_review">Tài liệu ôn thi</string>
+    <string name="community_help">Cộng đồng cần giúp</string>
+    <string name="exam_documents">Tài liệu ôn thi</string>
+    <string name="books_curriculum">Sách/Giáo trình</string>
+    <string name="lectures_slides">Bài giảng/Slide</string>
+
+    <string name="search_placeholder">Tìm kiếm tài liệu, môn học...</string>
+    <string name="subjects">Môn học</string>
+    <string name="subject_mechanical">Cơ khí</string>
+
+    <string name="notifications_title">Thông báo</string>
+
+    <string name="profile_documents">Tài liệu</string>
+    <string name="profile_downloads">Lượt tải</string>
+    <string name="rank_new_member">Thành viên mới</string>
+    <string name="rank_title">Hạng</string>
+
+    <string name="create_new_request">Tạo yêu cầu mới</string>
+    <string name="post_request">Đăng bài</string>
+    
+    <string name="desc_leaderboard">Bảng xếp hạng</string>
+    <string name="desc_community">Cộng đồng</string>
+    <string name="desc_notification">Thông báo</string>
+    <string name="desc_upload">Tải lên</string>
+
+    <string name="search_result_title">Kết quả cho \"%1$s\"</string>
+    <string name="search_result_count">Tìm thấy %1$d tài liệu</string>
+    <string name="search_empty_title">Rất tiếc, không tìm thấy tài liệu nào</string>
+    <string name="search_empty_desc">Chúng tôi không tìm thấy kết quả cho từ khóa \"%1$s\".</string>
+    <string name="btn_request_help">Nhờ cộng đồng tìm giúp ngay!</string>
+    <string name="error_message">Đã xảy ra lỗi: %1$s</string>
+    <string name="content_desc_back">Quay lại</string>
+    <string name="content_desc_not_found">Không tìm thấy</string>
+    <string name="content_desc_error">Lỗi</string>
+
+    <string name="noti_screen_title">Thông báo</string>
+    <string name="noti_unread_count">%1$d tin chưa đọc</string>
+    <string name="noti_mark_all_read">Đọc tất cả</string>
+    <string name="noti_empty">Chưa có thông báo nào</string>
+    <string name="content_desc_delete">Xóa</string>
+
+    <string name="time_just_now">Vừa xong</string>
+    <string name="time_minutes_ago">%1$d phút trước</string>
+    <string name="time_hours_ago">%1$d giờ trước</string>
+    <string name="time_days_ago">%1$d ngày trước</string>
+
 </resources>
