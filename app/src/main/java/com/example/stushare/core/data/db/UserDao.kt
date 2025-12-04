@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
+    @Query("SELECT * FROM users")
+    fun getAllUsers(): Flow<List<UserEntity>>
+
     // Lấy Top 10 người dùng có điểm cao nhất để hiển thị Bảng xếp hạng
     @Query("SELECT * FROM users ORDER BY contributionPoints DESC LIMIT 10")
     fun getTopUsers(): Flow<List<UserEntity>>
@@ -20,5 +23,4 @@ interface UserDao {
     // Lấy thông tin một người dùng cụ thể (để cộng điểm)
     @Query("SELECT * FROM users WHERE id = :userId")
     suspend fun getUserById(userId: String): UserEntity?
-
 }

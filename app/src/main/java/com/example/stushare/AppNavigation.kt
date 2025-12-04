@@ -71,7 +71,6 @@ import com.example.stushare.features.feature_profile.ui.settings.appearance.Appe
 import com.example.stushare.features.feature_profile.ui.legal.AboutAppScreen
 import com.example.stushare.features.feature_profile.ui.legal.ContactSupportScreen
 import com.example.stushare.features.feature_profile.ui.legal.ReportViolationScreen
-// ⭐️ THÊM 2 IMPORT NÀY:
 import com.example.stushare.features.feature_profile.ui.legal.TermsOfUseScreen
 import com.example.stushare.features.feature_profile.ui.legal.PrivacyPolicyScreen
 
@@ -108,7 +107,16 @@ fun AppNavigation(
         // ==========================================
         composable<NavRoute.Intro> { ManHinhChao(navController) }
         composable<NavRoute.Onboarding> { ManHinhGioiThieu(navController) }
-        composable<NavRoute.Login> { ManHinhDangNhap(navController) }
+        
+        // 🟢 CẬP NHẬT: Nhận tham số Email từ Route
+        composable<NavRoute.Login> { backStackEntry ->
+            val args = backStackEntry.toRoute<NavRoute.Login>()
+            ManHinhDangNhap(
+                boDieuHuong = navController,
+                emailMacDinh = args.email // Truyền email vào màn hình
+            )
+        }
+        
         composable<NavRoute.Register> { ManHinhDangKy(navController) }
         composable<NavRoute.ForgotPassword> { ManHinhQuenMatKhau(navController) }
         composable<NavRoute.LoginSMS> { ManHinhDangNhapSDT(navController) }
@@ -131,7 +139,7 @@ fun AppNavigation(
                     if (FirebaseAuth.getInstance().currentUser != null) navController.navigate(NavRoute.CreateRequest)
                     else {
                         Toast.makeText(context, "Cần đăng nhập!", Toast.LENGTH_SHORT).show()
-                        navController.navigate(NavRoute.Login)
+                        navController.navigate(NavRoute.Login()) // Login không tham số
                     }
                 },
                 onUploadClick = {
@@ -139,7 +147,7 @@ fun AppNavigation(
                         navController.navigate(NavRoute.Upload)
                     } else {
                         Toast.makeText(context, "Bạn cần đăng nhập để đăng tài liệu!", Toast.LENGTH_SHORT).show()
-                        navController.navigate(NavRoute.Login)
+                        navController.navigate(NavRoute.Login())
                     }
                 },
                 onLeaderboardClick = { navController.navigate(NavRoute.Leaderboard) },
@@ -178,7 +186,7 @@ fun AppNavigation(
                 onBackClick = { navController.popBackStack() },
                 onLoginRequired = {
                     Toast.makeText(context, "Cần đăng nhập!", Toast.LENGTH_SHORT).show()
-                    navController.navigate(NavRoute.Login)
+                    navController.navigate(NavRoute.Login())
                 },
                 onReadPdf = { url, title ->
                     if (url.isNotBlank()) {
@@ -221,7 +229,7 @@ fun AppNavigation(
                     if (FirebaseAuth.getInstance().currentUser != null) navController.navigate(NavRoute.CreateRequest)
                     else {
                         Toast.makeText(context, "Cần đăng nhập!", Toast.LENGTH_SHORT).show()
-                        navController.navigate(NavRoute.Login)
+                        navController.navigate(NavRoute.Login())
                     }
                 },
                 onNavigateToDetail = { requestId -> navController.navigate(NavRoute.RequestDetail(requestId)) }
@@ -283,7 +291,7 @@ fun AppNavigation(
                 viewModel = viewModel,
                 onNavigateToSettings = { navController.navigate(NavRoute.Settings) },
                 onNavigateToLeaderboard = { navController.navigate(NavRoute.Leaderboard) },
-                onNavigateToLogin = { navController.navigate(NavRoute.Login) },
+                onNavigateToLogin = { navController.navigate(NavRoute.Login()) },
                 onNavigateToRegister = { navController.navigate(NavRoute.Register) },
                 onDocumentClick = { docId -> navController.navigate(NavRoute.DocumentDetail(docId)) },
                 onNavigateToUpload = { navController.navigate(NavRoute.Upload) },
@@ -335,7 +343,7 @@ fun AppNavigation(
                 onLogoutClick = {
                     FirebaseAuth.getInstance().signOut()
                     Toast.makeText(context, "Đã đăng xuất thành công", Toast.LENGTH_SHORT).show()
-                    navController.navigate(NavRoute.Login) {
+                    navController.navigate(NavRoute.Login()) {
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
@@ -362,7 +370,7 @@ fun AppNavigation(
                 onBackClick = { navController.popBackStack() },
                 onPersonalInfoClick = { navController.navigate(NavRoute.PersonalInfo) },
                 onPhoneClick = { navController.navigate(NavRoute.EditPhone) },
-                onEmailClick = { }, // Không cho chỉnh sửa email trực tiếp
+                onEmailClick = { }, 
                 onPasswordClick = { navController.navigate(NavRoute.ChangePassword) },
                 onDeleteAccountClick = { Toast.makeText(context, "Chức năng cần xác thực lại", Toast.LENGTH_SHORT).show() }
             )
@@ -527,11 +535,32 @@ fun AppNavigation(
             ChangePasswordScreen(onBackClick = { navController.popBackStack() })
         }
 
+        // 🟢 CẬP NHẬT: LOGIC CHUYỂN TÀI KHOẢN (Gửi Email sang Login)
         composable<NavRoute.SwitchAccount>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
-            SwitchAccountScreen(onBackClick = { navController.popBackStack() })
+            val context = LocalContext.current
+            SwitchAccountScreen(
+                onBackClick = { navController.popBackStack() },
+                onAddAccountClick = { emailCanDangNhap ->
+                    // 1. Đăng xuất tài khoản hiện tại
+                    FirebaseAuth.getInstance().signOut()
+                    
+                    // 2. Chuyển về Login, kèm Email (nếu có)
+                    navController.navigate(NavRoute.Login(email = emailCanDangNhap)) {
+                        popUpTo(0) { inclusive = true } 
+                        launchSingleTop = true
+                    }
+                    
+                    // 3. Thông báo
+                    if (emailCanDangNhap != null) {
+                        Toast.makeText(context, "Vui lòng nhập mật khẩu cho $emailCanDangNhap", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Vui lòng đăng nhập tài khoản mới", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
         }
 
         composable<NavRoute.NotificationSettings>(
@@ -549,7 +578,6 @@ fun AppNavigation(
             AppearanceSettingsScreen(viewModel = viewModel, onBackClick = { navController.popBackStack() })
         }
 
-        // 🟢 CÁC MÀN HÌNH PHÁP LÝ (ĐÃ SỬA VỊ TRÍ)
         composable<NavRoute.AboutApp>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
@@ -575,7 +603,6 @@ fun AppNavigation(
             ReportViolationScreen(onBackClick = { navController.popBackStack() })
         }
 
-        // 🟢 THÊM MỚI TERMS VÀ PRIVACY (Ở TRONG NAVHOST)
         composable<NavRoute.TermsOfUse> {
             TermsOfUseScreen(onBackClick = { navController.popBackStack() })
         }
@@ -586,7 +613,6 @@ fun AppNavigation(
     } // Kết thúc NavHost
 }
 
-// 🟢 COMPONENT: HỘP THOẠI XÁC THỰC MẬT KHẨU (Để ngoài AppNavigation)
 @Composable
 fun ReAuthenticateDialog(
     onDismiss: () -> Unit,

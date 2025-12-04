@@ -6,7 +6,7 @@ sealed interface NavRoute {
     // --- AUTHENTICATION ---
     @Serializable data object Intro : NavRoute
     @Serializable data object Onboarding : NavRoute
-    @Serializable data object Login : NavRoute
+    @Serializable data class Login(val email: String? = null) : NavRoute
     @Serializable data object Register : NavRoute
     @Serializable data object ForgotPassword : NavRoute
     @Serializable data object LoginSMS : NavRoute

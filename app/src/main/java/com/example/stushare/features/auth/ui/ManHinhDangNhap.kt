@@ -20,14 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -37,13 +35,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
-// --- ĐỊNH NGHĨA MÀU TRỰC TIẾP (Không cần import PrimaryGreen) ---
+// --- ĐỊNH NGHĨA MÀU TRỰC TIẾP ---
 val MauXanhDangNhap = Color(0xFF4CAF50)
 
 @Composable
-fun ManHinhDangNhap(boDieuHuong: NavController) {
-    // Các biến trạng thái
-    var email by remember { mutableStateOf("") }
+fun ManHinhDangNhap(
+    boDieuHuong: NavController,
+    emailMacDinh: String? = null
+) {
+    // 🟢 Tự động điền email nếu có
+    var email by remember { mutableStateOf(emailMacDinh ?: "") }
     var matKhau by remember { mutableStateOf("") }
     var hienThiMatKhau by remember { mutableStateOf(false) }
     var dangXuLy by remember { mutableStateOf(false) }
@@ -69,7 +70,8 @@ fun ManHinhDangNhap(boDieuHuong: NavController) {
 
                     // --- ĐIỀU HƯỚNG VỀ HOME ---
                     boDieuHuong.navigate(NavRoute.Home) {
-                        popUpTo(NavRoute.Login) { inclusive = true }
+                        // Xóa sạch lịch sử Login cũ
+                        popUpTo(0) { inclusive = true }
                     }
                 } else {
                     val ngoaiLe = tacVu.exception
@@ -82,7 +84,6 @@ fun ManHinhDangNhap(boDieuHuong: NavController) {
             }
     }
 
-    // Đảm bảo file NenHinhSong.kt đã sửa package đúng
     NenHinhSong {
         Column(
             modifier = Modifier
@@ -267,7 +268,7 @@ fun ManHinhDangNhap(boDieuHuong: NavController) {
             TextButton(
                 onClick = {
                     boDieuHuong.navigate(NavRoute.Home) {
-                        popUpTo(NavRoute.Login) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 modifier = Modifier.padding(bottom = 16.dp)
