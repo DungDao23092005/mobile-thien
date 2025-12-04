@@ -25,13 +25,13 @@ fun EditAttributeScreen(
     initialValue: String,
     label: String,
     onBackClick: () -> Unit,
-    onSaveClick: (String) -> Unit, // 🟢 Callback trả dữ liệu về
-    keyboardType: KeyboardType = KeyboardType.Text // 🟢 [Mới] Để hỗ trợ bàn phím số khi nhập SĐT
+    onSaveClick: (String) -> Unit,
+    keyboardType: KeyboardType = KeyboardType.Text // Mặc định là Text
 ) {
     val context = LocalContext.current
     var value by remember { mutableStateOf(initialValue) }
 
-    // Lấy chuỗi resource để hiển thị thông báo
+    // String resources
     val errEmpty = stringResource(R.string.err_input_empty)
 
     // Dynamic theme colors
@@ -46,7 +46,7 @@ fun EditAttributeScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.content_desc_back), // [Sửa] Đa ngôn ngữ cho nút Back
+                            contentDescription = stringResource(R.string.content_desc_back),
                             tint = Color.White
                         )
                     }
@@ -62,9 +62,9 @@ fun EditAttributeScreen(
                 onValueChange = { value = it },
                 label = { Text(label) },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true, // [Sửa] Thường input 1 dòng nên set true
+                singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = keyboardType, // [Sửa] Sử dụng loại bàn phím được truyền vào
+                    keyboardType = keyboardType, // Sử dụng loại bàn phím truyền vào
                     imeAction = ImeAction.Done
                 ),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -79,17 +79,14 @@ fun EditAttributeScreen(
             Button(
                 onClick = {
                     if (value.isNotBlank()) {
-                        // 🟢 Call the callback with the new value
                         onSaveClick(value)
                     } else {
-                        // [Sửa] Sử dụng thông báo đa ngôn ngữ
                         Toast.makeText(context, errEmpty, Toast.LENGTH_SHORT).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // [Đã có sẵn] String resource cho nút Lưu
                 Text(stringResource(R.string.edit_save_btn))
             }
         }

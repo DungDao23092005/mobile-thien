@@ -278,4 +278,19 @@
     <string name="err_phone_invalid">Số điện thoại không hợp lệ (cần 10 số)</string>
     <string name="err_phone_same">Số điện thoại mới trùng với số cũ</string>
     <string name="err_input_empty">Vui lòng nhập thông tin</string>
+
+    <string name="msg_sending_otp">Đang gửi OTP đến %1$s...</string>
+    <string name="msg_otp_sent">Đã gửi mã OTP!</string>
+    <string name="title_enter_otp">Nhập mã xác thực</string>
+    <string name="desc_otp_sent">Mã OTP đã được gửi đến số điện thoại của bạn.</string>
+    <string name="label_otp_input">Mã OTP (6 số)</string>
+    <string name="btn_confirm">Xác nhận</string>
+    <string name="err_otp_length">Mã OTP phải có 6 số</string>
+    <string name="err_email_same">Email mới trùng với email hiện tại</string>
+    
+    <string name="title_security_auth">Xác thực bảo mật</string>
+    <string name="desc_enter_password">Vui lòng nhập mật khẩu hiện tại để tiếp tục:</string>
+    <string name="msg_logout_success">Đã đăng xuất thành công</string>
+    <string name="msg_login_required">Cần đăng nhập!</string>
+    <string name="err_generic">Lỗi: %1$s</string>
 </resources>

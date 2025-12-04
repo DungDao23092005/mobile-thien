@@ -30,8 +30,8 @@ import com.example.stushare.ui.theme.PrimaryGreen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountSecurityScreen(
-    userEmail: String, // 🟢 Nhận Email từ bên ngoài
-    userPhone: String, // 🟢 Nhận SĐT từ bên ngoài
+    userEmail: String,
+    userPhone: String,
     onBackClick: () -> Unit,
     onPersonalInfoClick: () -> Unit,
     onPhoneClick: () -> Unit,
@@ -39,7 +39,7 @@ fun AccountSecurityScreen(
     onPasswordClick: () -> Unit,
     onDeleteAccountClick: () -> Unit
 ) {
-    // Màu nền động
+    // Màu nền động theo theme
     val backgroundColor = MaterialTheme.colorScheme.background
     val dividerColor = MaterialTheme.colorScheme.outlineVariant
 
@@ -48,7 +48,7 @@ fun AccountSecurityScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.acc_sec_header),
+                        text = stringResource(R.string.acc_sec_header), // Tiêu đề: Tài khoản & bảo mật
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -58,7 +58,7 @@ fun AccountSecurityScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.content_desc_back), // Thêm content description từ resource
+                            contentDescription = stringResource(R.string.content_desc_back),
                             tint = Color.White
                         )
                     }
@@ -88,10 +88,10 @@ fun AccountSecurityScreen(
 
                 HorizontalDivider(thickness = 1.dp, color = dividerColor)
 
-                // 🟢 Hiển thị Số điện thoại thực tế
+                // Hiển thị Số điện thoại
                 AccountItem(
                     title = stringResource(R.string.acc_sec_phone),
-                    // [Đã sửa] Sử dụng stringResource thay cho chuỗi cứng "Chưa liên kết"
+                    // Logic: Nếu có SĐT thì hiện, không thì hiện chuỗi "Chưa liên kết" (lấy từ resource)
                     subtitle = if (userPhone.isNotBlank()) userPhone else stringResource(R.string.acc_sec_not_linked),
                     iconVector = Icons.Default.Phone,
                     onClick = onPhoneClick
@@ -99,10 +99,9 @@ fun AccountSecurityScreen(
 
                 HorizontalDivider(thickness = 1.dp, color = dividerColor)
 
-                // 🟢 Hiển thị Email thực tế
+                // Hiển thị Email
                 AccountItem(
                     title = stringResource(R.string.acc_sec_email),
-                    // [Đã sửa] Đảm bảo sử dụng stringResource
                     subtitle = if (userEmail.isNotBlank()) userEmail else stringResource(R.string.acc_sec_not_linked),
                     iconVector = Icons.Default.Email,
                     onClick = onEmailClick
@@ -113,7 +112,7 @@ fun AccountSecurityScreen(
 
                 AccountItem(
                     title = stringResource(R.string.acc_sec_password),
-                    subtitle = "********", // Mật khẩu ẩn thì không cần dịch
+                    subtitle = "********",
                     iconVector = Icons.Default.Lock,
                     onClick = onPasswordClick
                 )
@@ -131,7 +130,7 @@ fun AccountSecurityScreen(
                 Spacer(modifier = Modifier.height(100.dp))
             }
 
-            // Bottom Curve (Trang trí)
+            // Bottom Curve (Trang trí dưới cùng)
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

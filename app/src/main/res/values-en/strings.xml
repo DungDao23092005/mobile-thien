@@ -283,4 +283,19 @@
     <string name="err_phone_invalid">Invalid phone number (10 digits required)</string>
     <string name="err_phone_same">New phone number is the same as the old one</string>
     <string name="err_input_empty">Please enter information</string>
+
+    <string name="msg_sending_otp">Sending OTP to %1$s...</string>
+    <string name="msg_otp_sent">OTP sent!</string>
+    <string name="title_enter_otp">Enter Verification Code</string>
+    <string name="desc_otp_sent">OTP code has been sent to your phone number.</string>
+    <string name="label_otp_input">OTP Code (6 digits)</string>
+    <string name="btn_confirm">Confirm</string>
+    <string name="err_otp_length">OTP must be 6 digits</string>
+    <string name="err_email_same">New email is the same as the current one</string>
+    
+    <string name="title_security_auth">Security Authentication</string>
+    <string name="desc_enter_password">Please enter your current password to continue:</string>
+    <string name="msg_logout_success">Logged out successfully</string>
+    <string name="msg_login_required">Login required!</string>
+    <string name="err_generic">Error: %1$s</string>
 </resources>

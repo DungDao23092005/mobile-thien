@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource // Quan trọng
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -73,10 +75,9 @@ import com.example.stushare.features.feature_profile.ui.legal.ContactSupportScre
 import com.example.stushare.features.feature_profile.ui.legal.ReportViolationScreen
 import com.example.stushare.features.feature_profile.ui.legal.TermsOfUseScreen
 import com.example.stushare.features.feature_profile.ui.legal.PrivacyPolicyScreen
-
 import com.example.stushare.feature_request.ui.detail.RequestDetailScreen
 
-// 🟢 ADMIN IMPORTS
+// Admin Imports
 import com.example.stushare.features.feature_admin.ui.AdminScreen
 import com.example.stushare.features.feature_admin.ui.AdminReportScreen
 
@@ -108,12 +109,11 @@ fun AppNavigation(
         composable<NavRoute.Intro> { ManHinhChao(navController) }
         composable<NavRoute.Onboarding> { ManHinhGioiThieu(navController) }
         
-        // 🟢 CẬP NHẬT: Nhận tham số Email từ Route
         composable<NavRoute.Login> { backStackEntry ->
             val args = backStackEntry.toRoute<NavRoute.Login>()
             ManHinhDangNhap(
                 boDieuHuong = navController,
-                emailMacDinh = args.email // Truyền email vào màn hình
+                emailMacDinh = args.email
             )
         }
         
@@ -130,6 +130,7 @@ fun AppNavigation(
         // ==========================================
         composable<NavRoute.Home> {
             val context = LocalContext.current
+            val msgLoginRequired = stringResource(R.string.msg_login_required)
             HomeScreen(
                 windowSizeClass = windowSizeClass,
                 onSearchClick = { navController.navigate(NavRoute.Search) },
@@ -138,15 +139,15 @@ fun AppNavigation(
                 onCreateRequestClick = {
                     if (FirebaseAuth.getInstance().currentUser != null) navController.navigate(NavRoute.CreateRequest)
                     else {
-                        Toast.makeText(context, "Cần đăng nhập!", Toast.LENGTH_SHORT).show()
-                        navController.navigate(NavRoute.Login()) // Login không tham số
+                        Toast.makeText(context, msgLoginRequired, Toast.LENGTH_SHORT).show()
+                        navController.navigate(NavRoute.Login())
                     }
                 },
                 onUploadClick = {
                     if (FirebaseAuth.getInstance().currentUser != null) {
                         navController.navigate(NavRoute.Upload)
                     } else {
-                        Toast.makeText(context, "Bạn cần đăng nhập để đăng tài liệu!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, msgLoginRequired, Toast.LENGTH_SHORT).show()
                         navController.navigate(NavRoute.Login())
                     }
                 },
@@ -180,12 +181,13 @@ fun AppNavigation(
         composable<NavRoute.DocumentDetail> { backStackEntry ->
             val route = backStackEntry.toRoute<NavRoute.DocumentDetail>()
             val context = LocalContext.current
+            val msgLoginRequired = stringResource(R.string.msg_login_required)
 
             DocumentDetailScreen(
                 documentId = route.documentId,
                 onBackClick = { navController.popBackStack() },
                 onLoginRequired = {
-                    Toast.makeText(context, "Cần đăng nhập!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, msgLoginRequired, Toast.LENGTH_SHORT).show()
                     navController.navigate(NavRoute.Login())
                 },
                 onReadPdf = { url, title ->
@@ -223,12 +225,13 @@ fun AppNavigation(
 
         composable<NavRoute.RequestList> {
             val context = LocalContext.current
+            val msgLoginRequired = stringResource(R.string.msg_login_required)
             RequestListScreen(
                 onBackClick = { navController.popBackStack() },
                 onCreateRequestClick = {
                     if (FirebaseAuth.getInstance().currentUser != null) navController.navigate(NavRoute.CreateRequest)
                     else {
-                        Toast.makeText(context, "Cần đăng nhập!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, msgLoginRequired, Toast.LENGTH_SHORT).show()
                         navController.navigate(NavRoute.Login())
                     }
                 },
@@ -331,6 +334,7 @@ fun AppNavigation(
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
             val context = LocalContext.current
+            val msgLogoutSuccess = stringResource(R.string.msg_logout_success)
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
                 onAccountSecurityClick = { navController.navigate(NavRoute.AccountSecurity) },
@@ -342,7 +346,7 @@ fun AppNavigation(
                 onSwitchAccountClick = { navController.navigate(NavRoute.SwitchAccount) },
                 onLogoutClick = {
                     FirebaseAuth.getInstance().signOut()
-                    Toast.makeText(context, "Đã đăng xuất thành công", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, msgLogoutSuccess, Toast.LENGTH_SHORT).show()
                     navController.navigate(NavRoute.Login()) {
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
@@ -376,7 +380,7 @@ fun AppNavigation(
             )
         }
 
-        // 🟢 ROUTE MỚI: CHỈNH SỬA EMAIL
+        // 🟢 ROUTE MỚI: CHỈNH SỬA EMAIL (Đã Việt hóa)
         composable<NavRoute.EditEmail>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
@@ -387,6 +391,7 @@ fun AppNavigation(
             
             var showPasswordDialog by remember { mutableStateOf(false) }
             var pendingNewEmail by remember { mutableStateOf("") }
+            val errEmailSame = stringResource(R.string.err_email_same)
 
             LaunchedEffect(Unit) {
                 viewModel.updateMessage.collect { msg ->
@@ -398,18 +403,19 @@ fun AppNavigation(
             }
 
             EditAttributeScreen(
-                title = "Cập nhật Email",
+                title = stringResource(R.string.title_edit_email), // "Cập nhật Email"
                 initialValue = user?.email ?: "",
-                label = "Email mới",
+                label = stringResource(R.string.label_edit_email), // "Địa chỉ Email"
                 onBackClick = { navController.popBackStack() },
                 onSaveClick = { newEmail ->
                     if (newEmail == user?.email) {
-                        Toast.makeText(context, "Email mới trùng với email hiện tại", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, errEmailSame, Toast.LENGTH_SHORT).show()
                     } else {
                         pendingNewEmail = newEmail
                         showPasswordDialog = true
                     }
-                }
+                },
+                keyboardType = KeyboardType.Email
             )
 
             if (showPasswordDialog) {
@@ -423,7 +429,7 @@ fun AppNavigation(
             }
         }
 
-        // 🟢 ROUTE MỚI: CHỈNH SỬA SỐ ĐIỆN THOẠI
+        // 🟢 ROUTE MỚI: CHỈNH SỬA SỐ ĐIỆN THOẠI (Đã Việt hóa & Hỗ trợ tiếng Anh)
         composable<NavRoute.EditPhone>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
@@ -436,6 +442,12 @@ fun AppNavigation(
             var showOtpDialog by remember { mutableStateOf(false) }
             var isLoading by remember { mutableStateOf(false) }
 
+            // Các chuỗi thông báo
+            val msgSendingOtp = stringResource(R.string.msg_sending_otp) // "Đang gửi OTP đến %1$s"
+            val msgOtpSent = stringResource(R.string.msg_otp_sent)
+            val errPhoneEmpty = stringResource(R.string.err_phone_empty)
+            val errGeneric = stringResource(R.string.err_generic)
+
             LaunchedEffect(Unit) {
                 viewModel.updateMessage.collect { msg ->
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -447,9 +459,9 @@ fun AppNavigation(
             }
 
             EditAttributeScreen(
-                title = "Cập nhật SĐT",
+                title = stringResource(R.string.title_edit_phone), // "Cập nhật SĐT"
                 initialValue = user?.phoneNumber ?: "",
-                label = "Số điện thoại mới (VD: 0912...)",
+                label = stringResource(R.string.hint_phone_input), // "Nhập số điện thoại..."
                 onBackClick = { navController.popBackStack() },
                 onSaveClick = { rawPhone ->
                     if (activity != null && rawPhone.isNotBlank()) {
@@ -461,7 +473,8 @@ fun AppNavigation(
                         }
 
                         isLoading = true
-                        Toast.makeText(context, "Đang gửi OTP đến $formattedPhone...", Toast.LENGTH_SHORT).show()
+                        // Sử dụng String.format để chèn số điện thoại vào chuỗi resource
+                        Toast.makeText(context, String.format(msgSendingOtp, formattedPhone), Toast.LENGTH_SHORT).show()
                         
                         viewModel.sendOtp(
                             phoneNumber = formattedPhone,
@@ -469,35 +482,39 @@ fun AppNavigation(
                             onCodeSent = {
                                 isLoading = false
                                 showOtpDialog = true
-                                Toast.makeText(context, "Đã gửi mã OTP!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, msgOtpSent, Toast.LENGTH_SHORT).show()
                             },
                             onError = { errorMsg ->
                                 isLoading = false
-                                Toast.makeText(context, "Lỗi: $errorMsg", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, String.format(errGeneric, errorMsg), Toast.LENGTH_LONG).show()
                             }
                         )
                     } else {
-                        Toast.makeText(context, "Vui lòng nhập số điện thoại", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, errPhoneEmpty, Toast.LENGTH_SHORT).show()
                     }
-                }
+                },
+                keyboardType = KeyboardType.Phone // Bàn phím số
             )
 
+            // Dialog OTP
             if (showOtpDialog) {
                 var otpCode by remember { mutableStateOf("") }
+                val errOtpLength = stringResource(R.string.err_otp_length)
                 
                 AlertDialog(
                     onDismissRequest = { showOtpDialog = false },
-                    title = { Text("Nhập mã xác thực") },
+                    title = { Text(stringResource(R.string.title_enter_otp)) },
                     text = {
                         Column {
-                            Text("Mã OTP đã được gửi đến số điện thoại của bạn.")
+                            Text(stringResource(R.string.desc_otp_sent))
                             Spacer(modifier = Modifier.height(16.dp))
                             OutlinedTextField(
                                 value = otpCode,
                                 onValueChange = { otpCode = it },
-                                label = { Text("Mã OTP (6 số)") },
+                                label = { Text(stringResource(R.string.label_otp_input)) },
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number)
                             )
                         }
                     },
@@ -506,15 +523,15 @@ fun AppNavigation(
                             if (otpCode.length == 6) {
                                 viewModel.verifyAndUpdatePhone(otpCode)
                             } else {
-                                Toast.makeText(context, "Mã OTP phải có 6 số", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, errOtpLength, Toast.LENGTH_SHORT).show()
                             }
                         }) {
-                            Text("Xác nhận")
+                            Text(stringResource(R.string.btn_confirm))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showOtpDialog = false }) {
-                            Text("Hủy")
+                            Text(stringResource(R.string.cancel))
                         }
                     }
                 )
@@ -535,7 +552,6 @@ fun AppNavigation(
             ChangePasswordScreen(onBackClick = { navController.popBackStack() })
         }
 
-        // 🟢 CẬP NHẬT: LOGIC CHUYỂN TÀI KHOẢN (Gửi Email sang Login)
         composable<NavRoute.SwitchAccount>(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
@@ -544,16 +560,13 @@ fun AppNavigation(
             SwitchAccountScreen(
                 onBackClick = { navController.popBackStack() },
                 onAddAccountClick = { emailCanDangNhap ->
-                    // 1. Đăng xuất tài khoản hiện tại
                     FirebaseAuth.getInstance().signOut()
                     
-                    // 2. Chuyển về Login, kèm Email (nếu có)
                     navController.navigate(NavRoute.Login(email = emailCanDangNhap)) {
                         popUpTo(0) { inclusive = true } 
                         launchSingleTop = true
                     }
                     
-                    // 3. Thông báo
                     if (emailCanDangNhap != null) {
                         Toast.makeText(context, "Vui lòng nhập mật khẩu cho $emailCanDangNhap", Toast.LENGTH_SHORT).show()
                     } else {
@@ -622,15 +635,15 @@ fun ReAuthenticateDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Xác thực bảo mật") },
+        title = { Text(text = stringResource(R.string.title_security_auth)) },
         text = {
             Column {
-                Text("Vui lòng nhập mật khẩu hiện tại để tiếp tục:")
+                Text(stringResource(R.string.desc_enter_password))
                 Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Mật khẩu") },
+                    label = { Text(stringResource(R.string.acc_sec_password)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
@@ -642,12 +655,12 @@ fun ReAuthenticateDialog(
                 onClick = { onConfirm(password) },
                 enabled = password.isNotBlank()
             ) {
-                Text("Xác nhận")
+                Text(stringResource(R.string.btn_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
