@@ -48,7 +48,6 @@ private val LightColorScheme = lightColorScheme(
 fun StuShareTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
-    // ⭐️ THÊM THAM SỐ fontScale (Mặc định 1.0f)
     fontScale: Float = 1.0f,
     content: @Composable () -> Unit
 ) {
@@ -65,14 +64,19 @@ fun StuShareTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = if (darkTheme) Color.Black.toArgb() else colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            
+            // 🔴 SỬA Ở ĐÂY: Đặt thành Transparent để nội dung tràn lên được
+            window.statusBarColor = Color.Transparent.toArgb() 
+            
+            // Chỉnh màu icon trên thanh trạng thái:
+            // !darkTheme (Theme Sáng) -> Icon màu ĐEN (true)
+            // darkTheme (Theme Tối) -> Icon màu TRẮNG (false)
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
-    // ⭐️ LOGIC PHÓNG TO CHỮ (Magic happens here)
-    // Lấy Typography gốc và nhân fontSize, lineHeight với fontScale
-    val defaultTypography = Typography // Lấy từ file Type.kt
+    // Logic phóng to chữ giữ nguyên
+    val defaultTypography = Typography 
 
     val scaledTypography = Typography(
         displayLarge = defaultTypography.displayLarge.copy(
@@ -139,7 +143,7 @@ fun StuShareTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = scaledTypography, // 👈 Truyền bộ font đã phóng to vào Theme
+        typography = scaledTypography, 
         content = content
     )
 }

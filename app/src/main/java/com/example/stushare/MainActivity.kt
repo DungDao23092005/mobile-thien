@@ -1,6 +1,8 @@
 package com.example.stushare
 
+import android.graphics.Color
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -36,33 +38,37 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        
+        // CẤU HÌNH TRÀN VIỀN
+        enableEdgeToEdge(
+            // statusBarStyle: .dark(...) nghĩa là icon màu TRẮNG (dành cho nền tối)
+            // Nếu nền app của bạn màu trắng, hãy đổi thành .light(...) để icon màu ĐEN
+            statusBarStyle = SystemBarStyle.dark(
+                Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                Color.TRANSPARENT,
+                Color.TRANSPARENT
+            )
+        )
 
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
 
-            // 1. Dark Theme
             val isDarkTheme by settingsRepository.isDarkTheme
                 .collectAsState(initial = isSystemInDarkTheme())
 
-            // 2. Font Scale
             val fontScale by settingsRepository.fontScale
                 .collectAsState(initial = 1.0f)
 
-            // 3. Language - QUAN TRỌNG: Để initial = null để đợi DataStore load xong
             val languageCode by settingsRepository.languageCode
-                .collectAsState(initial = null)
+                .collectAsState(initial = "vi")
 
-            // Xử lý thay đổi ngôn ngữ
             LaunchedEffect(languageCode) {
-                // Chỉ chạy khi languageCode đã có dữ liệu (không null)
-                languageCode?.let { code ->
-                    val currentLocales = AppCompatDelegate.getApplicationLocales()
-                    // So sánh ngôn ngữ hiện tại và ngôn ngữ trong cài đặt
-                    if (currentLocales.toLanguageTags() != code) {
-                        val newLocale = LocaleListCompat.forLanguageTags(code)
-                        AppCompatDelegate.setApplicationLocales(newLocale)
-                    }
+                val currentLocales = AppCompatDelegate.getApplicationLocales()
+                val newLocale = LocaleListCompat.forLanguageTags(languageCode)
+                if (currentLocales.toLanguageTags() != languageCode) {
+                    AppCompatDelegate.setApplicationLocales(newLocale)
                 }
             }
 
@@ -82,11 +88,9 @@ fun MainAppScreen(windowSizeClass: WindowSizeClass) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Kết nối ViewModel để lấy dữ liệu Badge (số lượng thông báo chưa đọc)
     val mainViewModel: MainViewModel = hiltViewModel()
     val unreadCount by mainViewModel.unreadCount.collectAsState(initial = 0)
 
-    // Các màn hình cần hiển thị BottomNavigationBar
     val showBottomBar = listOf(
         NavRoute.Home,
         NavRoute.Search,
@@ -100,7 +104,6 @@ fun MainAppScreen(windowSizeClass: WindowSizeClass) {
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                // Đảm bảo BottomBar không bị ảnh hưởng bởi FontScale người dùng chọn
                 val currentDensity = LocalDensity.current
                 CompositionLocalProvider(
                     LocalDensity provides Density(density = currentDensity.density, fontScale = 1.0f)
@@ -111,12 +114,16 @@ fun MainAppScreen(windowSizeClass: WindowSizeClass) {
                     )
                 }
             }
-        }
+        },
+        // Container màu mặc định
+        containerColor = MaterialTheme.colorScheme.background 
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                // QUAN TRỌNG: Chỉ padding bottom để tránh BottomBar
+                // KHÔNG padding top để nội dung tràn lên Status Bar
+                .padding(bottom = innerPadding.calculateBottomPadding()) 
         ) {
             AppNavigation(
                 navController = navController,
