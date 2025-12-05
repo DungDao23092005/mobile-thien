@@ -20,12 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource // 🟢 Quan trọng: Import resource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.stushare.R // 🟢 Import R
+import com.example.stushare.R
 import com.example.stushare.ui.theme.PrimaryGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +33,7 @@ import com.example.stushare.ui.theme.PrimaryGreen
 fun AdminDashboardScreen(
     onBackClick: () -> Unit,
     onNavigateToReports: () -> Unit,
-    onNavigateToUsers: () -> Unit,
+    onNavigateToUsers: () -> Unit, // 🟢 MỚI: Thêm tham số này để điều hướng
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,7 +71,7 @@ fun AdminDashboardScreen(
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(
-                        stringResource(R.string.admin_system_overview), // 🟢 Đã sửa
+                        stringResource(R.string.admin_system_overview),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface
@@ -96,17 +96,17 @@ fun AdminDashboardScreen(
                         ) {
                             StatItem(
                                 count = uiState.userCount,
-                                label = stringResource(R.string.admin_stat_users), // 🟢 Đã sửa
+                                label = stringResource(R.string.admin_stat_users),
                                 color = PrimaryGreen
                             )
                             StatItem(
                                 count = uiState.docCount,
-                                label = stringResource(R.string.admin_stat_docs), // 🟢 Đã sửa
+                                label = stringResource(R.string.admin_stat_docs),
                                 color = Color(0xFFFF9800)
                             )
                             StatItem(
                                 count = uiState.requestCount,
-                                label = stringResource(R.string.admin_stat_requests), // 🟢 Đã sửa
+                                label = stringResource(R.string.admin_stat_requests),
                                 color = Color(0xFFF44336)
                             )
                         }
@@ -116,7 +116,7 @@ fun AdminDashboardScreen(
 
             Spacer(Modifier.height(24.dp))
             Text(
-                stringResource(R.string.admin_management_functions), // 🟢 Đã sửa
+                stringResource(R.string.admin_management_functions),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 color = MaterialTheme.colorScheme.onBackground
@@ -128,7 +128,7 @@ fun AdminDashboardScreen(
             // Nút Duyệt Báo Cáo
             DashboardActionItem(
                 icon = Icons.Default.ReportProblem,
-                title = stringResource(R.string.admin_btn_reports), // 🟢 Đã sửa
+                title = stringResource(R.string.admin_btn_reports),
                 color = Color.Red,
                 onClick = onNavigateToReports
             )
@@ -136,17 +136,17 @@ fun AdminDashboardScreen(
             // Nút Quản lý người dùng
             DashboardActionItem(
                 icon = Icons.Default.Group,
-                title = stringResource(R.string.admin_btn_users), // 🟢 Đã sửa
+                title = stringResource(R.string.admin_btn_users),
                 color = Color.Blue,
-                onClick = onNavigateToUsers
+                onClick = onNavigateToUsers // 🟢 Đã gắn callback điều hướng
             )
 
             // Nút Gửi thông báo
             DashboardActionItem(
                 icon = Icons.Default.Notifications,
-                title = stringResource(R.string.admin_btn_notifications), // 🟢 Đã sửa
+                title = stringResource(R.string.admin_btn_notifications),
                 color = PrimaryGreen,
-                onClick = { /* TODO */ }
+                onClick = { /* TODO: Tính năng sau */ }
             )
         }
     }

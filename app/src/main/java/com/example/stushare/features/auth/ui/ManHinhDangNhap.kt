@@ -74,7 +74,7 @@ fun ManHinhDangNhap(
                         firestore.collection("users").document(userId).get()
                             .addOnSuccessListener { document ->
                                 dangXuLy = false
-                                val isBanned = document.getBoolean("isBanned") ?: false
+                                val isBanned = document.getBoolean("banned") ?: false
                                 
                                 if (isBanned) {
                                     // 🔴 Nếu bị khóa: Đăng xuất ngay và báo lỗi

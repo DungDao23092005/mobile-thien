@@ -102,7 +102,6 @@ class AdminViewModel @Inject constructor(
 
     fun loadUsers() {
         viewModelScope.launch {
-            // Chỉ hiện loading nếu danh sách đang trống để tránh nháy màn hình
             if (_userList.value.isEmpty()) _isProcessing.value = true
             
             adminRepository.getAllUsers()
@@ -118,11 +117,11 @@ class AdminViewModel @Inject constructor(
 
     fun toggleUserBan(user: UserEntity) {
         viewModelScope.launch {
+            // 🟢 LOGIC: Nếu đang Cấm (true) -> Mở (false). Nếu đang Mở (false) -> Cấm (true).
             val newStatus = !user.isBanned
             val actionMsg = if (newStatus) "đã bị KHÓA" else "đã được MỞ KHÓA"
 
-            // 🟢 BƯỚC 1: Cập nhật giao diện NGAY LẬP TỨC (Không chờ Server)
-            // Tìm user trong danh sách hiện tại và đổi trạng thái của họ
+            // 1. Cập nhật UI ngay lập tức
             val updatedList = _userList.value.map { currentUser ->
                 if (currentUser.id == user.id) {
                     currentUser.copy(isBanned = newStatus)
@@ -132,19 +131,17 @@ class AdminViewModel @Inject constructor(
             }
             _userList.value = updatedList
 
-            // 🟢 BƯỚC 2: Gửi lệnh lên Server ngầm
+            // 2. Gửi lên Server (Lưu ý: Repository phải dùng key "banned" như đã sửa ở bước trước)
             adminRepository.toggleUserBanStatus(user.id, newStatus)
                 .onSuccess {
                     _toastMessage.emit("Tài khoản ${user.email} $actionMsg")
-                    // Không cần loadUsers() lại vì giao diện đã đúng rồi
                 }
                 .onFailure { e ->
                     _toastMessage.emit("Thất bại: ${e.message}")
-                    
-                    // 🔴 BƯỚC 3: Nếu lỗi mạng, hoàn tác lại giao diện cũ
+                    // Hoàn tác nếu lỗi
                     val revertedList = _userList.value.map { currentUser ->
                         if (currentUser.id == user.id) {
-                            currentUser.copy(isBanned = !newStatus) // Đổi lại như cũ
+                            currentUser.copy(isBanned = !newStatus)
                         } else {
                             currentUser
                         }

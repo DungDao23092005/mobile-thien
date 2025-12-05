@@ -31,6 +31,7 @@ sealed interface NavRoute {
     @Serializable data object AdminDashboard : NavRoute
     @Serializable data object AdminReports : NavRoute
     @Serializable data object AdminUsers : NavRoute
+    @Serializable data object AdminSendNotification : NavRoute // 🟢 MỚI: Route gửi thông báo
 
     // --- SETTINGS ---
     @Serializable data object Settings : NavRoute

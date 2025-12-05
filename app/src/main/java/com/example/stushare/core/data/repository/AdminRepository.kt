@@ -1,7 +1,7 @@
 package com.example.stushare.core.data.repository
 
 import com.example.stushare.core.data.models.Report
-import com.example.stushare.core.data.models.UserEntity // 🟢 Import UserEntity
+import com.example.stushare.core.data.models.UserEntity
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -128,6 +128,8 @@ class AdminRepositoryImpl @Inject constructor(
                 .orderBy("email")
                 .get()
                 .await()
+            
+            // Firebase tự động map field "banned" -> property "isBanned" trong UserEntity
             val users = snapshot.documents.mapNotNull { doc ->
                 doc.toObject(UserEntity::class.java)?.copy(id = doc.id)
             }
@@ -140,8 +142,9 @@ class AdminRepositoryImpl @Inject constructor(
     // 🟢 MỚI: Đổi trạng thái Ban/Unban
     override suspend fun toggleUserBanStatus(userId: String, isBanned: Boolean): Result<Unit> {
         return try {
+            // 🔴 QUAN TRỌNG: Sửa key "isBanned" thành "banned" để khớp với mapper
             firestore.collection("users").document(userId)
-                .update("isBanned", isBanned)
+                .update("banned", isBanned) 
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {

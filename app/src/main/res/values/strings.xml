@@ -336,4 +336,17 @@
     <string name="msg_ban_user">Đã khóa tài khoản %1$s</string>
     <string name="msg_unban_user">Đã mở khóa tài khoản %1$s</string>
     <string name="err_load_users">Lỗi tải danh sách: %1$s</string>
+
+    <string name="admin_send_notif_screen_title">Gửi thông báo</string>
+    <string name="label_notif_title">Tiêu đề thông báo</string>
+    <string name="label_notif_content">Nội dung tin nhắn</string>
+    <string name="opt_send_all">Gửi cho tất cả người dùng</string>
+    <string name="opt_send_specific">Gửi cho người dùng cụ thể</string>
+    <string name="hint_target_email">Nhập email người nhận...</string>
+    <string name="btn_send_now">Gửi ngay</string>
+    <string name="msg_sending_notif">Đang gửi thông báo...</string>
+    <string name="msg_sent_all_success">Đã gửi cho tất cả người dùng!</string>
+    <string name="msg_sent_user_success">Đã gửi cho %1$s</string>
+    <string name="err_user_not_found">Không tìm thấy người dùng có email này</string>
+    <string name="err_input_missing">Vui lòng nhập đầy đủ tiêu đề và nội dung</string>
 </resources>
