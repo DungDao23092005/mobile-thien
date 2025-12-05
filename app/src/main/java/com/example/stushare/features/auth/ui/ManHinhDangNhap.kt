@@ -34,6 +34,7 @@ import com.example.stushare.core.navigation.NavRoute
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.firestore.FirebaseFirestore // 🟢 Import thêm Firestore
 
 // --- ĐỊNH NGHĨA MÀU TRỰC TIẾP ---
 val MauXanhDangNhap = Color(0xFF4CAF50)
@@ -52,6 +53,7 @@ fun ManHinhDangNhap(
 
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance() // 🟢 Khởi tạo Firestore
 
     // Hàm xử lý đăng nhập
     fun thucHienDangNhap() {
@@ -62,18 +64,42 @@ fun ManHinhDangNhap(
         }
 
         dangXuLy = true
+        // 1. Đăng nhập bằng Auth trước
         firebaseAuth.signInWithEmailAndPassword(email, matKhau)
             .addOnCompleteListener { tacVu ->
-                dangXuLy = false
                 if (tacVu.isSuccessful) {
-                    Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-
-                    // --- ĐIỀU HƯỚNG VỀ HOME ---
-                    boDieuHuong.navigate(NavRoute.Home) {
-                        // Xóa sạch lịch sử Login cũ
-                        popUpTo(0) { inclusive = true }
+                    val userId = firebaseAuth.currentUser?.uid
+                    if (userId != null) {
+                        // 2. Kiểm tra trạng thái bị khóa (Banned) trong Firestore
+                        firestore.collection("users").document(userId).get()
+                            .addOnSuccessListener { document ->
+                                dangXuLy = false
+                                val isBanned = document.getBoolean("isBanned") ?: false
+                                
+                                if (isBanned) {
+                                    // 🔴 Nếu bị khóa: Đăng xuất ngay và báo lỗi
+                                    firebaseAuth.signOut()
+                                    thongBaoLoi = "Tài khoản của bạn đã bị khóa do vi phạm chính sách."
+                                } else {
+                                    // 🟢 Nếu không bị khóa: Cho phép vào Home
+                                    Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                                    boDieuHuong.navigate(NavRoute.Home) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                dangXuLy = false
+                                // Nếu lỗi mạng khi check Firestore, tạm thời logout để an toàn
+                                firebaseAuth.signOut()
+                                thongBaoLoi = "Lỗi kiểm tra thông tin người dùng: ${e.message}"
+                            }
+                    } else {
+                        dangXuLy = false
+                        thongBaoLoi = "Lỗi xác thực người dùng."
                     }
                 } else {
+                    dangXuLy = false
                     val ngoaiLe = tacVu.exception
                     thongBaoLoi = when (ngoaiLe) {
                         is FirebaseAuthInvalidUserException -> "Tài khoản không tồn tại."

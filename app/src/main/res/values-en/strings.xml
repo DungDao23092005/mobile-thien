@@ -298,4 +298,47 @@
     <string name="msg_logout_success">Logged out successfully</string>
     <string name="msg_login_required">Login required!</string>
     <string name="err_generic">Error: %1$s</string>
+
+    <string name="admin_dashboard_title">Admin Dashboard</string>
+    <string name="admin_system_overview">System Overview</string>
+    <string name="admin_stat_users">Users</string>
+    <string name="admin_stat_docs">Documents</string>
+    <string name="admin_stat_requests">Requests</string>
+    <string name="admin_management_functions">Management Functions</string>
+    <string name="admin_btn_reports">Review Reports / Content</string>
+    <string name="admin_btn_users">User Management</string>
+    <string name="admin_btn_notifications">Send System Notifications</string>
+
+    <string name="report_screen_title">Violation Reports</string>
+    <string name="report_empty_message">Clean! No reports found.</string>
+    <string name="report_label_document">Document:</string>
+    <string name="report_label_reporter">Reporter:</string>
+    <string name="report_label_date">Date:</string>
+    <string name="report_label_id">ID:</string>
+    <string name="btn_view">View</string>
+    <string name="btn_dismiss">Dismiss</string>
+    <string name="btn_delete">Delete</string>
+
+    <string name="profile_btn_access_admin">ACCESS ADMIN DASHBOARD</string>
+
+    <string name="profile_unauth_title">You are not logged in</string>
+    <string name="profile_unauth_desc">Log in to manage documents, view download history, and join the leaderboard.</string>
+    <string name="btn_login_now">Login Now</string>
+    <string name="btn_create_account">Create New Account</string>
+
+    <string name="profile_empty_posted">You haven\'t posted any documents</string>
+    <string name="btn_upload_now">Upload Now</string>
+    <string name="profile_empty_saved">You haven\'t saved any documents</string>
+    <string name="btn_explore_now">Explore Now</string>
+    <string name="profile_empty_downloaded">No downloaded documents</string>
+    <string name="btn_search_docs">Search Documents</string>
+
+    <string name="admin_user_list_title">User List</string>
+    <string name="admin_user_status_banned">BANNED</string>
+    <string name="admin_user_role_admin">ADMIN</string>
+    <string name="admin_user_role_user">USER</string>
+    
+    <string name="msg_ban_user">Banned account %1$s</string>
+    <string name="msg_unban_user">Unbanned account %1$s</string>
+    <string name="err_load_users">Error loading list: %1$s</string>
 </resources>

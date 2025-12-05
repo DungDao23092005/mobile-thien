@@ -16,7 +16,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    // 🟢 Bind AdminRepository tại đây (Duy nhất 1 chỗ này thôi)
+    // 🟢 Bind AdminRepository tại đây
     @Binds
     @Singleton
     abstract fun bindAdminRepository(

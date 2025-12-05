@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Warning
@@ -18,12 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource // 🟢 Import
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.stushare.R // 🟢 Import
 import com.example.stushare.core.data.models.Report
+import com.example.stushare.ui.theme.PrimaryGreen
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -32,14 +33,13 @@ import java.util.Locale
 @Composable
 fun AdminReportScreen(
     onBackClick: () -> Unit,
-    onDocumentClick: (String) -> Unit, // Callback mở tài liệu
+    onDocumentClick: (String) -> Unit,
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val reports by viewModel.reports.collectAsState()
-    val isProcessing by viewModel.isProcessing.collectAsState() // 🟢 Dùng đúng biến isProcessing
+    val isProcessing by viewModel.isProcessing.collectAsState()
     val context = LocalContext.current
 
-    // Lắng nghe Toast thông báo kết quả
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collectLatest { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -49,35 +49,47 @@ fun AdminReportScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Quản lý vi phạm", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.report_screen_title), fontWeight = FontWeight.Bold) }, // 🟢
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFFFF0F0), // Màu đỏ nhạt
-                    titleContentColor = Color.Red
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onErrorContainer
                 )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF5F5F5))
         ) {
             if (isProcessing) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = PrimaryGreen
+                )
             } else if (reports.isEmpty()) {
                 Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(Icons.Default.Done, null, tint = Color.Green, modifier = Modifier.size(64.dp))
+                    Icon(
+                        imageVector = Icons.Default.Done,
+                        contentDescription = null,
+                        tint = PrimaryGreen,
+                        modifier = Modifier.size(64.dp)
+                    )
                     Spacer(Modifier.height(16.dp))
-                    Text("Sạch bóng! Không có báo cáo nào.", color = Color.Gray)
+                    Text(
+                        text = stringResource(R.string.report_empty_message), // 🟢
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             } else {
                 LazyColumn(
@@ -106,46 +118,92 @@ fun ReportItem(
     onViewDocument: () -> Unit
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
-            // Header: Lý do
+            // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Warning, null, tint = Color.Red, modifier = Modifier.size(20.dp))
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(20.dp)
+                )
                 Spacer(Modifier.width(8.dp))
-                Text(report.reason, fontWeight = FontWeight.Bold, color = Color.Red)
+                Text(
+                    text = report.reason,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
             Spacer(Modifier.height(12.dp))
 
-            // Content
-            Text("Tài liệu: ${report.documentTitle.ifBlank { "ID: ${report.documentId}" }}", fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Người báo cáo: ${report.reporterEmail}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            // Content (Sử dụng string template)
+            // "Tài liệu: Tên tài liệu"
+            Text(
+                text = "${stringResource(R.string.report_label_document)} ${report.documentTitle.ifBlank { "${stringResource(R.string.report_label_id)} ${report.documentId}" }}", // 🟢
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Text(
+                text = "${stringResource(R.string.report_label_reporter)} ${report.reporterEmail}", // 🟢
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-            val date = try { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(report.timestamp) } catch (e: Exception) { "" }
-            Text("Ngày: $date", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            val date = try {
+                SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(report.timestamp)
+            } catch (e: Exception) { "" }
+            
+            Text(
+                text = "${stringResource(R.string.report_label_date)} $date", // 🟢
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-            HorizontalDivider(Modifier.padding(vertical = 12.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
 
             // Buttons
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 TextButton(onClick = onViewDocument) {
                     Icon(Icons.Default.Visibility, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Xem thử")
+                    Text(stringResource(R.string.btn_view)) // 🟢
                 }
+                
                 Row {
-                    OutlinedButton(onClick = onDismiss, contentPadding = PaddingValues(horizontal = 12.dp)) {
-                        Text("Bỏ qua", color = Color.Gray)
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        contentPadding = PaddingValues(horizontal = 12.dp),
+                        border = null
+                    ) {
+                        Text(
+                            text = stringResource(R.string.btn_dismiss), // 🟢
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        ),
                         contentPadding = PaddingValues(horizontal = 12.dp)
                     ) {
-                        Text("Xóa")
+                        Text(stringResource(R.string.btn_delete)) // 🟢
                     }
                 }
             }

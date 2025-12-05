@@ -24,7 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource // Quan trọng
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -35,6 +35,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.google.firebase.auth.FirebaseAuth
+import com.example.stushare.features.feature_admin.ui.AdminUserListScreen
 
 // Import NavRoute
 import com.example.stushare.core.navigation.NavRoute
@@ -78,7 +79,7 @@ import com.example.stushare.features.feature_profile.ui.legal.PrivacyPolicyScree
 import com.example.stushare.feature_request.ui.detail.RequestDetailScreen
 
 // Admin Imports
-import com.example.stushare.features.feature_admin.ui.AdminScreen
+import com.example.stushare.features.feature_admin.ui.AdminDashboardScreen // 🟢 Đã cập nhật tên import
 import com.example.stushare.features.feature_admin.ui.AdminReportScreen
 
 @Composable
@@ -311,9 +312,10 @@ fun AppNavigation(
             enterTransition = { enterTransition }, exitTransition = { exitTransition },
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
-            AdminScreen(
+            AdminDashboardScreen(
                 onBackClick = { navController.popBackStack() },
-                onNavigateToReports = { navController.navigate(NavRoute.AdminReports) }
+                onNavigateToReports = { navController.navigate(NavRoute.AdminReports) },
+                onNavigateToUsers = { navController.navigate(NavRoute.AdminUsers) } // 🟢 Kết nối route mới
             )
         }
 
@@ -326,6 +328,15 @@ fun AppNavigation(
                 onDocumentClick = { documentId ->
                     navController.navigate(NavRoute.DocumentDetail(documentId))
                 }
+            )
+        }
+
+        composable<NavRoute.AdminUsers>(
+            enterTransition = { enterTransition }, exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
+        ) {
+            AdminUserListScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 

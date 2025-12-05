@@ -39,7 +39,9 @@ sealed interface ProfileUiState {
         val profile: UserProfile,
         val totalDocs: Int = 0,
         val totalDownloads: Int = 0,
-        val memberRank: String = "Thành viên mới"
+        val memberRank: String = "Thành viên mới",
+        // 🟢 [MỚI] Thêm cờ đánh dấu Admin để UI hiển thị nút Dashboard
+        val isAdmin: Boolean = false
     ) : ProfileUiState
 }
 
@@ -85,7 +87,7 @@ class ProfileViewModel @Inject constructor(
         .flatMapLatest { user ->
             if (user != null) {
                 saveCurrentSessionToLocalDb()
-                
+
                 // Lắng nghe thay đổi từ Firestore Realtime
                 val userDocFlow = callbackFlow {
                     val docRef = firestore.collection("users").document(user.uid)
@@ -110,20 +112,23 @@ class ProfileViewModel @Inject constructor(
                     }
 
                     // --- [FIX QUAN TRỌNG] ---
-                    // Ưu tiên lấy dữ liệu từ Firestore Snapshot để đảm bảo đồng bộ UI ngay lập tức
+                    // Ưu tiên lấy dữ liệu từ Firestore Snapshot
                     val firestoreName = snapshot?.getString("fullName")
                     val authName = user.displayName
-                    // Nếu Firestore có tên thì dùng, nếu không mới dùng Auth (fallback)
                     val finalName = if (!firestoreName.isNullOrBlank()) firestoreName else (authName ?: user.email ?: "Sinh viên UTH")
 
                     val major = snapshot?.getString("major") ?: "Chưa cập nhật"
                     val bio = snapshot?.getString("bio") ?: ""
+                    
+                    // 🟢 [MỚI] Lấy role và xác định isAdmin
                     val role = snapshot?.getString("role") ?: "user"
+                    val isAdmin = role == "admin"
+
                     val avatar = snapshot?.getString("avatarUrl") ?: user.photoUrl?.toString()
 
                     val profile = UserProfile(
                         id = user.uid,
-                        fullName = finalName, // Sử dụng tên đã xử lý ưu tiên Firestore
+                        fullName = finalName,
                         email = user.email ?: "",
                         avatarUrl = avatar,
                         major = major,
@@ -135,7 +140,8 @@ class ProfileViewModel @Inject constructor(
                         profile = profile,
                         totalDocs = totalDocs,
                         totalDownloads = totalDownloads,
-                        memberRank = rank
+                        memberRank = rank,
+                        isAdmin = isAdmin // 🟢 Truyền trạng thái admin vào State
                     )
                 }
             } else {
@@ -252,13 +258,12 @@ class ProfileViewModel @Inject constructor(
 
     fun updateExtendedInfo(major: String, bio: String) {
         val user = auth.currentUser ?: return
-        // [CẬP NHẬT MỚI] Đồng bộ luôn email vào Firestore để đảm bảo dữ liệu đầy đủ
         val data = hashMapOf(
-            "major" to major, 
+            "major" to major,
             "bio" to bio,
             "email" to (user.email ?: "")
         )
-        
+
         viewModelScope.launch {
             try {
                 firestore.collection("users").document(user.uid).set(data, SetOptions.merge()).await()
@@ -277,10 +282,10 @@ class ProfileViewModel @Inject constructor(
                 val storageRef = storage.reference.child("avatars/${user.uid}.jpg")
                 storageRef.putFile(uri).await()
                 val downloadUrl = storageRef.downloadUrl.await()
-                
+
                 val profileUpdates = UserProfileChangeRequest.Builder().setPhotoUri(downloadUrl).build()
                 user.updateProfile(profileUpdates).await()
-                
+
                 // Cập nhật URL ảnh và đồng bộ email nếu chưa có
                 firestore.collection("users").document(user.uid)
                     .set(mapOf(
@@ -288,10 +293,10 @@ class ProfileViewModel @Inject constructor(
                         "email" to (user.email ?: "")
                     ), SetOptions.merge())
                     .await()
-                
+
                 user.reload().await()
                 saveCurrentSessionToLocalDb()
-                
+
                 _updateMessage.emit("Đã cập nhật ảnh đại diện!")
             } catch (e: Exception) {
                 _updateMessage.emit("Lỗi tải ảnh: ${e.message}")
@@ -310,24 +315,20 @@ class ProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // 1. Cập nhật Auth (có thể chậm)
                 val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(newName).build()
                 user.updateProfile(profileUpdates).await()
 
-                // 2. Cập nhật Firestore (quan trọng, vì UI lắng nghe cái này)
-                // [CẬP NHẬT MỚI] Đồng bộ luôn email vào đây
                 val updateMap = mapOf(
                     "fullName" to newName,
                     "email" to (user.email ?: "")
                 )
-                
+
                 firestore.collection("users").document(user.uid)
                     .set(updateMap, SetOptions.merge())
                     .await()
 
                 _updateMessage.emit("Cập nhật tên thành công!")
-                
-                // 3. Đồng bộ lại session local
+
                 user.reload().await()
                 saveCurrentSessionToLocalDb()
 
@@ -365,7 +366,6 @@ class ProfileViewModel @Inject constructor(
                 user.updateEmail(newEmail).addOnCompleteListener { updateTask ->
                     viewModelScope.launch {
                         if (updateTask.isSuccessful) {
-                            // Cập nhật Email mới vào Firestore
                             firestore.collection("users").document(user.uid)
                                 .set(mapOf("email" to newEmail), SetOptions.merge())
                             _updateMessage.emit("Đổi email thành công!")
