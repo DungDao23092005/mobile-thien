@@ -3,7 +3,7 @@ package com.example.stushare.features.feature_admin.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stushare.core.data.models.Report
-import com.example.stushare.core.data.models.UserEntity // 🟢 Import
+import com.example.stushare.core.data.models.UserEntity
 import com.example.stushare.core.data.repository.AdminRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,19 +25,15 @@ class AdminViewModel @Inject constructor(
     private val adminRepository: AdminRepository
 ) : ViewModel() {
 
-    // 1. State cho Thống kê
     private val _uiState = MutableStateFlow(AdminUiState())
     val uiState = _uiState.asStateFlow()
 
-    // 2. State cho Báo cáo
     private val _reports = MutableStateFlow<List<Report>>(emptyList())
     val reports = _reports.asStateFlow()
 
-    // 3. State cho Danh sách User - 🟢 MỚI
     private val _userList = MutableStateFlow<List<UserEntity>>(emptyList())
     val userList = _userList.asStateFlow()
 
-    // 4. Các biến chung
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
 
@@ -47,7 +43,6 @@ class AdminViewModel @Inject constructor(
     init {
         loadStats()
         loadReports()
-        // Không load users ngay lập tức để tiết kiệm, sẽ gọi khi vào màn UserList
     }
 
     fun loadStats() {
@@ -68,10 +63,8 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    // --- REPORT LOGIC ---
     fun loadReports() {
         viewModelScope.launch {
-            // Chỉ hiện loading nếu danh sách rỗng
             if (_reports.value.isEmpty()) _isProcessing.value = true
             adminRepository.getPendingReports()
                 .onSuccess { list -> _reports.value = list }
@@ -105,11 +98,13 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    // --- USER MANAGEMENT LOGIC - 🟢 MỚI ---
+    // --- QUẢN LÝ USER ---
 
     fun loadUsers() {
         viewModelScope.launch {
-            _isProcessing.value = true
+            // Chỉ hiện loading nếu danh sách đang trống để tránh nháy màn hình
+            if (_userList.value.isEmpty()) _isProcessing.value = true
+            
             adminRepository.getAllUsers()
                 .onSuccess { users ->
                     _userList.value = users
@@ -125,14 +120,36 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             val newStatus = !user.isBanned
             val actionMsg = if (newStatus) "đã bị KHÓA" else "đã được MỞ KHÓA"
-            
+
+            // 🟢 BƯỚC 1: Cập nhật giao diện NGAY LẬP TỨC (Không chờ Server)
+            // Tìm user trong danh sách hiện tại và đổi trạng thái của họ
+            val updatedList = _userList.value.map { currentUser ->
+                if (currentUser.id == user.id) {
+                    currentUser.copy(isBanned = newStatus)
+                } else {
+                    currentUser
+                }
+            }
+            _userList.value = updatedList
+
+            // 🟢 BƯỚC 2: Gửi lệnh lên Server ngầm
             adminRepository.toggleUserBanStatus(user.id, newStatus)
                 .onSuccess {
                     _toastMessage.emit("Tài khoản ${user.email} $actionMsg")
-                    loadUsers() // Load lại danh sách để cập nhật UI
+                    // Không cần loadUsers() lại vì giao diện đã đúng rồi
                 }
                 .onFailure { e ->
                     _toastMessage.emit("Thất bại: ${e.message}")
+                    
+                    // 🔴 BƯỚC 3: Nếu lỗi mạng, hoàn tác lại giao diện cũ
+                    val revertedList = _userList.value.map { currentUser ->
+                        if (currentUser.id == user.id) {
+                            currentUser.copy(isBanned = !newStatus) // Đổi lại như cũ
+                        } else {
+                            currentUser
+                        }
+                    }
+                    _userList.value = revertedList
                 }
         }
     }

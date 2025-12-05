@@ -21,32 +21,32 @@ class GetNewDocumentsUseCaseTest {
 
     private lateinit var getNewDocumentsUseCase: GetNewDocumentsUseCase
 
-    // DATA GIẢ LẬP ĐÃ SỬA LỖI KIỂU DỮ LIỆU VÀ THAM SỐ
+    // DATA GIẢ LẬP ĐÃ SỬA LỖI KIỂU DỮ LIỆU (ID là String)
     private val MOCK_DOCUMENTS = listOf(
         // Tài liệu MỚI (type = "Sách")
         Document(
-            id = 1L, // Sửa: Long
+            id = "1", // 🟢 Sửa: String
             title = "Toán Cao Cấp",
             type = "Sách",
-            author = "User A", // Thêm tham số
+            author = "User A",
             courseCode = "CS101",
             downloads = 100,
-            rating = 4.5, // Sửa: Giả định là Double
+            rating = 4.5,
             imageUrl = "http://fake.com/math.jpg"
         ),
         Document(
-            id = 2L,
+            id = "2", // 🟢 Sửa: String
             title = "Vật Lý Đại Cương",
             type = "Sách",
             author = "User B",
             courseCode = "PHY101",
             downloads = 50,
-            rating = 4.0, // Sửa: Giả định là Double
+            rating = 4.0,
             imageUrl = "http://fake.com/physics.jpg"
         ),
         // Tài liệu KHÔNG PHẢI MỚI (type != "Sách")
         Document(
-            id = 3L,
+            id = "3", // 🟢 Sửa: String
             title = "Đề Thi Kì 1",
             type = "Tài Liệu",
             author = "Admin",
@@ -56,7 +56,7 @@ class GetNewDocumentsUseCaseTest {
             imageUrl = "http://fake.com/exam.jpg"
         ),
         Document(
-            id = 4L,
+            id = "4", // 🟢 Sửa: String
             title = "Báo Cáo Thực Tập",
             type = "Báo Cáo",
             author = "Intern A",
@@ -105,11 +105,11 @@ class GetNewDocumentsUseCaseTest {
         // Thiết lập Mock Repository để trả về một danh sách không có tài liệu loại "Sách"
         val mockDataWithoutNew = listOf(
             Document(
-                id = 5L, title = "Project Thesis", type = "Thesis", author = "X", courseCode = "Y",
+                id = "5", title = "Project Thesis", type = "Thesis", author = "X", courseCode = "Y",
                 downloads = 1, rating = 1.0, imageUrl = "http://fake.com/a.jpg"
             ),
             Document(
-                id = 6L, title = "Final Review", type = "Review", author = "X", courseCode = "Y",
+                id = "6", title = "Final Review", type = "Review", author = "X", courseCode = "Y",
                 downloads = 1, rating = 1.0, imageUrl = "http://fake.com/b.jpg"
             )
         )

@@ -2,8 +2,10 @@ package com.example.stushare.features.feature_home.ui.home
 
 import com.example.stushare.core.data.models.DataFailureException
 import com.example.stushare.core.data.models.Document
+import com.example.stushare.core.data.models.DocumentRequest
 import com.example.stushare.core.data.repository.DocumentRepository
-import com.example.stushare.core.data.repository.SettingsRepository
+import com.example.stushare.core.data.repository.NotificationRepository
+import com.example.stushare.core.data.repository.RequestRepository
 import com.example.stushare.core.domain.usecase.GetExamDocumentsUseCase
 import com.example.stushare.core.domain.usecase.GetNewDocumentsUseCase
 import com.example.stushare.rules.MainDispatcherRule
@@ -33,19 +35,38 @@ class HomeViewModelTest {
     private lateinit var mockRepository: DocumentRepository
     private lateinit var mockGetNewDocsUseCase: GetNewDocumentsUseCase
     private lateinit var mockGetExamDocsUseCase: GetExamDocumentsUseCase
-    private lateinit var mockSettingsRepository: SettingsRepository
+    private lateinit var mockNotificationRepository: NotificationRepository // 🟢 Thêm
+    private lateinit var mockRequestRepository: RequestRepository         // 🟢 Thêm
     private lateinit var mockFirebaseAuth: FirebaseAuth
     private lateinit var mockFirebaseUser: FirebaseUser
 
     // 4. Đối tượng cần test
     private lateinit var viewModel: HomeViewModel
 
-    // 5. Dữ liệu giả để test
+    // 5. Dữ liệu giả để test - 🟢 SỬA LẠI CONSTRUCTOR DOCUMENT (Dùng named arguments cho an toàn)
     private val fakeNewDocs = listOf(
-        Document(1L, "Sách Mới 1", "Sách", "", 10, 4.5, "Tác giả A", "IT123")
+        Document(
+            id = "1",
+            title = "Sách Mới 1",
+            type = "Sách",
+            imageUrl = "",
+            downloads = 10,
+            rating = 4.5,
+            author = "Tác giả A",
+            courseCode = "IT123"
+        )
     )
     private val fakeExamDocs = listOf(
-        Document(2L, "Đề Thi 1", "Tài Liệu", "", 20, 4.8, "Tác giả B", "CS101")
+        Document(
+            id = "2",
+            title = "Đề Thi 1",
+            type = "Tài Liệu",
+            imageUrl = "",
+            downloads = 20,
+            rating = 4.8,
+            author = "Tác giả B",
+            courseCode = "CS101"
+        )
     )
 
     // 6. Hàm Setup: Chạy trước mỗi hàm @Test
@@ -55,7 +76,8 @@ class HomeViewModelTest {
         mockRepository = mockk(relaxed = true)
         mockGetNewDocsUseCase = mockk()
         mockGetExamDocsUseCase = mockk()
-        mockSettingsRepository = mockk(relaxed = true)
+        mockNotificationRepository = mockk(relaxed = true) // 🟢 Init
+        mockRequestRepository = mockk(relaxed = true)      // 🟢 Init
         mockFirebaseAuth = mockk()
         mockFirebaseUser = mockk()
 
@@ -64,6 +86,12 @@ class HomeViewModelTest {
         // Khi Use Case được gọi, trả về dữ liệu giả
         every { mockGetNewDocsUseCase.invoke() } returns flowOf(fakeNewDocs)
         every { mockGetExamDocsUseCase.invoke() } returns flowOf(fakeExamDocs)
+        
+        // 🟢 Mock thêm các hàm mới được gọi trong init của ViewModel
+        every { mockRepository.getDocumentsByType("book") } returns flowOf(emptyList())
+        every { mockRepository.getDocumentsByType("lecture") } returns flowOf(emptyList())
+        every { mockNotificationRepository.getUnreadCount() } returns flowOf(0)
+        every { mockRequestRepository.getAllRequests() } returns flowOf(emptyList<DocumentRequest>())
 
         // Khi hỏi thông tin User, trả về "Test User"
         every { mockFirebaseAuth.currentUser } returns mockFirebaseUser
@@ -71,11 +99,13 @@ class HomeViewModelTest {
         every { mockFirebaseUser.photoUrl } returns null
 
         // 8. Khởi tạo ViewModel (hàm init sẽ tự động chạy)
+        // 🟢 CẬP NHẬT CONSTRUCTOR CHO ĐÚNG VỚI HOMEVIEWMODEL HIỆN TẠI
         viewModel = HomeViewModel(
             repository = mockRepository,
             getNewDocumentsUseCase = mockGetNewDocsUseCase,
             getExamDocumentsUseCase = mockGetExamDocsUseCase,
-            settingsRepository = mockSettingsRepository,
+            notificationRepository = mockNotificationRepository,
+            requestRepository = mockRequestRepository,
             firebaseAuth = mockFirebaseAuth
         )
     }
