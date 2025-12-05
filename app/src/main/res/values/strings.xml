@@ -349,4 +349,5 @@
     <string name="msg_sent_user_success">Đã gửi cho %1$s</string>
     <string name="err_user_not_found">Không tìm thấy người dùng có email này</string>
     <string name="err_input_missing">Vui lòng nhập đầy đủ tiêu đề và nội dung</string>
+    <string name="default_web_client_id">87446888050-rkhimu976pje8coo91qd44h12ih9hufh.apps.googleusercontent.com</string>
 </resources>

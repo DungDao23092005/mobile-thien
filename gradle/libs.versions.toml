@@ -28,12 +28,14 @@ windowSizeClass = "1.1.2"
 kotlinTest = "1.9.20"
 playServicesGames = "24.0.0"
 appcompat = "1.7.1"
+playServicesAuth = "21.0.0"
 
 [libraries]
 # Thư viện Serialization (Bắt buộc)
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

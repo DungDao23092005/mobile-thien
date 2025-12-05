@@ -341,4 +341,17 @@
     <string name="msg_ban_user">Banned account %1$s</string>
     <string name="msg_unban_user">Unbanned account %1$s</string>
     <string name="err_load_users">Error loading list: %1$s</string>
+
+    <string name="admin_send_notif_screen_title">Send Notification</string>
+    <string name="label_notif_title">Notification Title</string>
+    <string name="label_notif_content">Message Content</string>
+    <string name="opt_send_all">Send to all users</string>
+    <string name="opt_send_specific">Send to specific user</string>
+    <string name="hint_target_email">Enter recipient email...</string>
+    <string name="btn_send_now">Send Now</string>
+    <string name="msg_sending_notif">Sending notification...</string>
+    <string name="msg_sent_all_success">Sent to all users!</string>
+    <string name="msg_sent_user_success">Sent to %1$s</string>
+    <string name="err_user_not_found">User with this email not found</string>
+    <string name="err_input_missing">Please enter both title and content</string>
 </resources>

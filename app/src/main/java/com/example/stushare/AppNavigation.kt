@@ -35,7 +35,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.google.firebase.auth.FirebaseAuth
-import com.example.stushare.features.feature_admin.ui.AdminUserListScreen
 
 // Import NavRoute
 import com.example.stushare.core.navigation.NavRoute
@@ -79,8 +78,10 @@ import com.example.stushare.features.feature_profile.ui.legal.PrivacyPolicyScree
 import com.example.stushare.feature_request.ui.detail.RequestDetailScreen
 
 // Admin Imports
-import com.example.stushare.features.feature_admin.ui.AdminDashboardScreen // 🟢 Đã cập nhật tên import
+import com.example.stushare.features.feature_admin.ui.AdminDashboardScreen
 import com.example.stushare.features.feature_admin.ui.AdminReportScreen
+import com.example.stushare.features.feature_admin.ui.AdminUserListScreen
+import com.example.stushare.features.feature_admin.ui.AdminSendNotificationScreen // 🟢 Import Mới
 
 @Composable
 fun AppNavigation(
@@ -315,7 +316,8 @@ fun AppNavigation(
             AdminDashboardScreen(
                 onBackClick = { navController.popBackStack() },
                 onNavigateToReports = { navController.navigate(NavRoute.AdminReports) },
-                onNavigateToUsers = { navController.navigate(NavRoute.AdminUsers) } // 🟢 Kết nối route mới
+                onNavigateToUsers = { navController.navigate(NavRoute.AdminUsers) },
+                onNavigateToSendNotif = { navController.navigate(NavRoute.AdminSendNotification) } // 🟢 Thêm callback này
             )
         }
 
@@ -336,6 +338,16 @@ fun AppNavigation(
             popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
         ) {
             AdminUserListScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // 🟢 Route Gửi thông báo
+        composable<NavRoute.AdminSendNotification>(
+            enterTransition = { enterTransition }, exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition }, popExitTransition = { popExitTransition }
+        ) {
+            AdminSendNotificationScreen(
                 onBackClick = { navController.popBackStack() }
             )
         }

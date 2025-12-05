@@ -60,6 +60,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-storage")
+    implementation(libs.play.services.auth)
 
     // --- Core & UI ---
     implementation(libs.androidx.core.ktx)

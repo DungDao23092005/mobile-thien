@@ -1,6 +1,9 @@
 package com.example.stushare.features.auth.ui
 
+import android.app.Activity
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,20 +35,21 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.stushare.R
 import com.example.stushare.core.navigation.NavRoute
+import com.example.stushare.ui.theme.PrimaryGreen
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.firestore.FirebaseFirestore // 🟢 Import thêm Firestore
-
-// --- ĐỊNH NGHĨA MÀU TRỰC TIẾP ---
-val MauXanhDangNhap = Color(0xFF4CAF50)
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun ManHinhDangNhap(
     boDieuHuong: NavController,
     emailMacDinh: String? = null
 ) {
-    // 🟢 Tự động điền email nếu có
     var email by remember { mutableStateOf(emailMacDinh ?: "") }
     var matKhau by remember { mutableStateOf("") }
     var hienThiMatKhau by remember { mutableStateOf(false) }
@@ -53,10 +58,36 @@ fun ManHinhDangNhap(
 
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
-    val firestore = FirebaseFirestore.getInstance() // 🟢 Khởi tạo Firestore
+    val firestore = FirebaseFirestore.getInstance()
 
-    // Hàm xử lý đăng nhập
-    fun thucHienDangNhap() {
+    // 🟢 HÀM CHUNG: Kiểm tra trạng thái tài khoản sau khi Auth thành công
+    // (Dùng cho cả Email và Google)
+    fun checkLoginStatus(userId: String) {
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                dangXuLy = false
+                // Kiểm tra xem tài khoản có bị khóa không
+                val isBanned = document.getBoolean("banned") ?: false
+
+                if (isBanned) {
+                    firebaseAuth.signOut()
+                    thongBaoLoi = "Tài khoản của bạn đã bị khóa do vi phạm chính sách."
+                } else {
+                    Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                    boDieuHuong.navigate(NavRoute.Home) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                dangXuLy = false
+                firebaseAuth.signOut()
+                thongBaoLoi = "Lỗi kiểm tra thông tin: ${e.message}"
+            }
+    }
+
+    // 🟢 XỬ LÝ: Đăng nhập bằng Email/Pass
+    fun thucHienDangNhapEmail() {
         thongBaoLoi = ""
         if (email.isEmpty() || matKhau.isEmpty()) {
             thongBaoLoi = "Vui lòng nhập đầy đủ thông tin"
@@ -64,43 +95,19 @@ fun ManHinhDangNhap(
         }
 
         dangXuLy = true
-        // 1. Đăng nhập bằng Auth trước
         firebaseAuth.signInWithEmailAndPassword(email, matKhau)
-            .addOnCompleteListener { tacVu ->
-                if (tacVu.isSuccessful) {
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
                     val userId = firebaseAuth.currentUser?.uid
                     if (userId != null) {
-                        // 2. Kiểm tra trạng thái bị khóa (Banned) trong Firestore
-                        firestore.collection("users").document(userId).get()
-                            .addOnSuccessListener { document ->
-                                dangXuLy = false
-                                val isBanned = document.getBoolean("banned") ?: false
-                                
-                                if (isBanned) {
-                                    // 🔴 Nếu bị khóa: Đăng xuất ngay và báo lỗi
-                                    firebaseAuth.signOut()
-                                    thongBaoLoi = "Tài khoản của bạn đã bị khóa do vi phạm chính sách."
-                                } else {
-                                    // 🟢 Nếu không bị khóa: Cho phép vào Home
-                                    Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                                    boDieuHuong.navigate(NavRoute.Home) {
-                                        popUpTo(0) { inclusive = true }
-                                    }
-                                }
-                            }
-                            .addOnFailureListener { e ->
-                                dangXuLy = false
-                                // Nếu lỗi mạng khi check Firestore, tạm thời logout để an toàn
-                                firebaseAuth.signOut()
-                                thongBaoLoi = "Lỗi kiểm tra thông tin người dùng: ${e.message}"
-                            }
+                        checkLoginStatus(userId)
                     } else {
                         dangXuLy = false
                         thongBaoLoi = "Lỗi xác thực người dùng."
                     }
                 } else {
                     dangXuLy = false
-                    val ngoaiLe = tacVu.exception
+                    val ngoaiLe = task.exception
                     thongBaoLoi = when (ngoaiLe) {
                         is FirebaseAuthInvalidUserException -> "Tài khoản không tồn tại."
                         is FirebaseAuthInvalidCredentialsException -> "Sai email hoặc mật khẩu."
@@ -110,6 +117,58 @@ fun ManHinhDangNhap(
             }
     }
 
+    // 🟢 CẤU HÌNH GOOGLE SIGN IN
+    // Lấy default_web_client_id từ file google-services.json (Android Studio tự sinh ra)
+    val gso = remember {
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+    }
+    val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
+
+    // 🟢 XỬ LÝ: Kết quả trả về từ Google Launcher
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                // Lấy tài khoản Google thành công
+                val account = task.getResult(ApiException::class.java)
+                val idToken = account.idToken
+                
+                if (idToken != null) {
+                    dangXuLy = true
+                    // Dùng token này để đăng nhập vào Firebase
+                    val credential = GoogleAuthProvider.getCredential(idToken, null)
+                    firebaseAuth.signInWithCredential(credential)
+                        .addOnCompleteListener { authTask ->
+                            if (authTask.isSuccessful) {
+                                val userId = firebaseAuth.currentUser?.uid
+                                if (userId != null) {
+                                    checkLoginStatus(userId)
+                                }
+                            } else {
+                                dangXuLy = false
+                                thongBaoLoi = "Lỗi xác thực Firebase: ${authTask.exception?.message}"
+                            }
+                        }
+                } else {
+                    dangXuLy = false
+                    thongBaoLoi = "Không lấy được ID Token từ Google"
+                }
+            } catch (e: ApiException) {
+                dangXuLy = false
+                // Mã lỗi thường gặp: 10, 12500 (thường do SHA-1 sai)
+                thongBaoLoi = "Đăng nhập Google thất bại (Mã lỗi: ${e.statusCode})"
+            }
+        } else {
+            dangXuLy = false // Người dùng hủy đăng nhập (bấm nút Back/Hủy)
+        }
+    }
+
+    // --- UI ---
     NenHinhSong {
         Column(
             modifier = Modifier
@@ -131,7 +190,7 @@ fun ManHinhDangNhap(
                 text = "Đăng Nhập",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = MauXanhDangNhap
+                color = PrimaryGreen
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -144,16 +203,28 @@ fun ManHinhDangNhap(
                     thongBaoLoi = ""
                 },
                 placeholder = { Text("Email") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color.Gray) },
+                leadingIcon = { 
+                    Icon(
+                        Icons.Default.Email, 
+                        contentDescription = null, 
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant 
+                    ) 
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .border(1.dp, if (thongBaoLoi.isNotEmpty()) Color.Red else Color.Transparent, RoundedCornerShape(16.dp)),
+                    .border(
+                        1.dp, 
+                        if (thongBaoLoi.isNotEmpty()) MaterialTheme.colorScheme.error else Color.Transparent, 
+                        RoundedCornerShape(16.dp)
+                    ),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE0E0E0),
-                    unfocusedContainerColor = Color(0xFFE0E0E0),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
@@ -169,26 +240,38 @@ fun ManHinhDangNhap(
                     thongBaoLoi = ""
                 },
                 placeholder = { Text("Mật khẩu") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray) },
+                leadingIcon = { 
+                    Icon(
+                        Icons.Default.Lock, 
+                        contentDescription = null, 
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant 
+                    ) 
+                },
                 trailingIcon = {
                     IconButton(onClick = { hienThiMatKhau = !hienThiMatKhau }) {
                         Icon(
                             imageVector = if (hienThiMatKhau) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .border(1.dp, if (thongBaoLoi.isNotEmpty()) Color.Red else Color.Transparent, RoundedCornerShape(16.dp)),
+                    .border(
+                        1.dp, 
+                        if (thongBaoLoi.isNotEmpty()) MaterialTheme.colorScheme.error else Color.Transparent, 
+                        RoundedCornerShape(16.dp)
+                    ),
                 visualTransformation = if (hienThiMatKhau) VisualTransformation.None else PasswordVisualTransformation(),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE0E0E0),
-                    unfocusedContainerColor = Color(0xFFE0E0E0),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -198,7 +281,7 @@ fun ManHinhDangNhap(
             if (thongBaoLoi.isNotEmpty()) {
                 Text(
                     text = thongBaoLoi,
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -209,7 +292,7 @@ fun ManHinhDangNhap(
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 Text(
                     text = "Quên mật khẩu?",
-                    color = MauXanhDangNhap,
+                    color = PrimaryGreen,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         boDieuHuong.navigate(NavRoute.ForgotPassword)
@@ -219,13 +302,16 @@ fun ManHinhDangNhap(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Nút Đăng nhập
+            // Nút Đăng nhập Email
             Button(
-                onClick = { thucHienDangNhap() },
+                onClick = { thucHienDangNhapEmail() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MauXanhDangNhap),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryGreen,
+                    contentColor = Color.White
+                ),
                 shape = RoundedCornerShape(25.dp),
                 enabled = !dangXuLy
             ) {
@@ -238,21 +324,31 @@ fun ManHinhDangNhap(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Đăng nhập bằng cách khác
-            Text("Hoặc đăng nhập bằng", color = Color.Gray)
+            // Text "Hoặc đăng nhập bằng"
+            Text(
+                "Hoặc đăng nhập bằng", 
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Hàng nút Mạng xã hội
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Nút Google
+                // 🟢 NÚT GOOGLE ĐÃ ĐƯỢC GẮN HÀM XỬ LÝ
                 IconButton(
-                    onClick = { /* TODO: Google Sign In */ },
+                    onClick = { 
+                        if (!dangXuLy) {
+                            dangXuLy = true
+                            // Kích hoạt Intent đăng nhập Google
+                            googleLauncher.launch(googleSignInClient.signInIntent)
+                        }
+                    },
                     modifier = Modifier
                         .size(50.dp)
-                        .background(Color.White, CircleShape)
-                        .border(1.dp, Color.LightGray, CircleShape)
+                        .background(MaterialTheme.colorScheme.surface, CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_google),
@@ -261,12 +357,13 @@ fun ManHinhDangNhap(
                     )
                 }
 
+                // Nút Đăng nhập SĐT
                 IconButton(
                     onClick = { boDieuHuong.navigate(NavRoute.LoginSMS) },
                     modifier = Modifier
                         .size(50.dp)
-                        .background(Color.White, CircleShape)
-                        .border(1.dp, Color.LightGray, CircleShape)
+                        .background(MaterialTheme.colorScheme.surface, CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_dienthoai1),
@@ -279,10 +376,13 @@ fun ManHinhDangNhap(
             Spacer(modifier = Modifier.height(32.dp))
 
             Row {
-                Text("Chưa có tài khoản? ", color = Color.Black)
+                Text(
+                    "Chưa có tài khoản? ", 
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Text(
                     text = "Đăng ký ngay",
-                    color = MauXanhDangNhap,
+                    color = PrimaryGreen,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         boDieuHuong.navigate(NavRoute.Register)
@@ -301,7 +401,7 @@ fun ManHinhDangNhap(
             ) {
                 Text(
                     text = "Tiếp tục với vai trò Khách 👤",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )

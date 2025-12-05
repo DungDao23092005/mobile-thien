@@ -33,7 +33,8 @@ import com.example.stushare.ui.theme.PrimaryGreen
 fun AdminDashboardScreen(
     onBackClick: () -> Unit,
     onNavigateToReports: () -> Unit,
-    onNavigateToUsers: () -> Unit, // 🟢 MỚI: Thêm tham số này để điều hướng
+    onNavigateToUsers: () -> Unit,
+    onNavigateToSendNotif: () -> Unit,
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -146,7 +147,7 @@ fun AdminDashboardScreen(
                 icon = Icons.Default.Notifications,
                 title = stringResource(R.string.admin_btn_notifications),
                 color = PrimaryGreen,
-                onClick = { /* TODO: Tính năng sau */ }
+                onClick = onNavigateToSendNotif
             )
         }
     }
